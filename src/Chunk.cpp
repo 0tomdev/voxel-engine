@@ -32,20 +32,20 @@ void glPrintErrors(const char* function) {
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
 /*  3D CUBE
  *  0-------1
- *  |2------+3
- *  ||      ||
- *  ||      ||
- *  4+------5|
- *   6-------7
+ *  | 2-----+-3
+ *  | |     | |
+ *  | |     | |
+ *  4-+-----5 |
+ *    6-------7
  *
- * TOP
+ * TOP (y=1)
  * 0-------1
  * |       |
  * |       |
  * |       |
  * 2-------3
  *
- * BOTTOM
+ * BOTTOM (y=0)
  * 4-------5
  * |       |
  * |       |
@@ -53,34 +53,59 @@ void glPrintErrors(const char* function) {
  * 6-------7
  *
  * east (+x) -->
+ * west (-x) <--
  * up (+y) ⬆
+ * down (-y) ⬇
  * south (+z) into your face
  * north (-z) into the screen
  *
+ *
+ * VERTEX FORMAT
+ * [x, y, x, u, v]
+ *
+ * (x, y, z) - world coords
+ * (u, v) - texture coords
  */
 
 // clang-format off
 static float cubeVertices[] {
-    0, 1, 0,
-    1, 1, 0,
-    0, 1, 1,
-    1, 1, 1,
+    // Top
+    0, 1, 0,  0, 0,
+    1, 1, 0,  1, 0,
+    0, 1, 1,  0, 1,
+    1, 1, 1,  1, 1,
 
+    // Bottom
+    0, 0, 0,  0, 0,
+    1, 0, 0,  1, 0,
+    0, 0, 1,  0, 1,
+    1, 0, 1,  1, 1,
 };
 
 static const unsigned int cubeIndices[] {
-    0, 1, 2, // front
+    // Top
+    0, 1, 2,
     1, 2, 3,
-    4, 5, 6, // back
+
+    // Bottom
+    4, 5, 6,
     5, 6, 7,
-    1, 5, 7, // right
-    1, 7, 3,
-    0, 4, 6, // left
-    0, 2, 6,
-    0, 4, 1, // top
-    4, 1, 5,
-    2, 6, 3, // bottom
-    6, 7, 3
+
+    // Left
+    0, 2, 4,
+    4, 2, 6,
+
+    // Right
+    1, 3, 5,
+    5, 3, 7,
+
+    // Front
+    2, 3, 6,
+    6, 3, 7,
+
+    // Back
+    0, 1, 4,
+    4, 1, 5
 };
 
 // clang-format on
