@@ -1,0 +1,15 @@
+---
+Language: Cpp
+IndentWidth: 4
+AlignAfterOpenBracket: BlockIndent
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortCaseLabelsOnASingleLine: True
+ColumnLimit: 90
+Cpp11BracedListStyle: False
+IndentCaseLabels: True
+SortIncludes: Never
+PointerAlignment: Left
+AccessModifierOffset: -4
+---
+
