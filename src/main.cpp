@@ -132,6 +132,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.calculateDirection();
+
+        // glEnable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
         chunk.render(camera);
 
         // check and call events and swap the buffers
