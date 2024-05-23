@@ -11,10 +11,12 @@
 #include "Chunk.hpp"
 #include "global.hpp"
 
-#define GL_CALL(x)                                                                       \
-    glClearErrors();                                                                     \
-    x;                                                                                   \
-    glPrintErrors(#x)
+// #define GL_CALL(x)                                                                       \
+//     glClearErrors();                                                                     \
+//     x;                                                                                   \
+//     glPrintErrors(#x)
+
+#define GL_CALL(x) x
 
 void glClearErrors() {
     while (glGetError() != GL_NO_ERROR)
@@ -60,26 +62,21 @@ void glPrintErrors(const char* function) {
  * north (-z) into the screen
  *
  *
- * VERTEX FORMAT
- * [x, y, x, u, v]
- *
- * (x, y, z) - world coords
- * (u, v) - texture coords
  */
 
 // clang-format off
 static float cubeVertices[] {
     // Top
-    0, 1, 0,  0, 0,
-    1, 1, 0,  1, 0,
-    0, 1, 1,  0, 1,
-    1, 1, 1,  1, 1,
+    0, 1, 0,
+    1, 1, 0,
+    0, 1, 1,
+    1, 1, 1,
 
     // Bottom
-    0, 0, 0,  0, 0,
-    1, 0, 0,  1, 0,
-    0, 0, 1,  0, 1,
-    1, 0, 1,  1, 1,
+    0, 0, 0,
+    1, 0, 0,
+    0, 0, 1,
+    1, 0, 1,
 };
 
 static const unsigned int cubeIndices[] {
@@ -107,7 +104,6 @@ static const unsigned int cubeIndices[] {
     0, 1, 4,
     4, 1, 5
 };
-
 // clang-format on
 
 std::optional<Shader> Chunk::shader;
@@ -115,6 +111,7 @@ unsigned int Chunk::vertexColorLocation;
 unsigned int Chunk::modelLoc;
 unsigned int Chunk::viewLoc;
 unsigned int Chunk::projectionLoc;
+std::vector<Chunk::Vertex> Chunk::allCubeVertices;
 
 /**
  * Load shaders here because GL functions can only be called after glewInit()
@@ -126,14 +123,65 @@ void Chunk::init() {
     Chunk::modelLoc = glGetUniformLocation(shaderValue.ID, "model");
     Chunk::viewLoc = glGetUniformLocation(shaderValue.ID, "view");
     Chunk::projectionLoc = glGetUniformLocation(shaderValue.ID, "projection");
+
+    // Generate actual cube vertices
+    for (int i = 0; i < 6; i++) {
+        Direction dir = (Direction)i;
+        std::vector<Vertex> vertices;
+        int positionVecComponentOffset = i / 2;
+        int namingIsHard = 1 - i % 2; // this will be 1 or 0
+        // std::cout << i << " | " << positionVecComponentOffset << " | " << namingIsHard
+        //           << "\n";
+        std::vector<Vertex> faceVerts;
+        for (int j = 0; j < 24; j += 3) {
+            if (cubeVertices[j + positionVecComponentOffset] != namingIsHard) continue;
+            Vertex vert;
+            vert.x = cubeVertices[j];
+            vert.y = cubeVertices[j + 1];
+            vert.z = cubeVertices[j + 2];
+            vert.normal = i;
+            switch (positionVecComponentOffset) {
+                case 0:
+                    vert.u = vert.y;
+                    vert.v = vert.z;
+                    break;
+                case 1:
+                    vert.u = vert.x;
+                    vert.v = vert.z;
+                    break;
+                case 2:
+                    vert.u = vert.x;
+                    vert.v = vert.y;
+                    break;
+                default: break;
+            }
+
+            faceVerts.push_back(vert);
+            // std::cout << vert.x << ", " << vert.y << ", " << vert.z << "\n";
+        }
+        int tris[] = { 0, 1, 2, 2, 3, 1 };
+        assert(faceVerts.size() == 4);
+        for (int k : tris) {
+            allCubeVertices.push_back(faceVerts[k]);
+        }
+        // std::cout << "\n";
+    }
+
+    // int i = 0;
+    // for (Vertex v : allCubeVertices) {
+    //     std::cout << v.x << ", " << v.y << ", " << v.z << "   " << v.u << ", " << v.v
+    //               << "   " << (int)v.normal << "\n";
+    //     if (i % 3 == 2) std::cout << "\n";
+    //     i++;
+    // }
 }
 
 Chunk::Chunk() {
     memset(data, 1, CHUNK_SIZE * sizeof(BlockID));
-    for (int i = 0; i < CHUNK_SIZE; i++) {
-        std::cout << (int)data[i] << " ";
-    }
-    std::cout << "\n";
+    // for (int i = 0; i < CHUNK_SIZE; i++) {
+    //     std::cout << (int)data[i] << " ";
+    // }
+    // std::cout << "\n";
 
     unsigned int EBO; // element buffer object
     unsigned int buffer;
@@ -145,15 +193,33 @@ Chunk::Chunk() {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, allCubeVertices.size() * sizeof(Vertex), &allCubeVertices[0],
+        GL_STATIC_DRAW
+    );
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW
     );
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // glEnableVertexAttribArray(0);
+
+    // xyz coords
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
+    // uv coords
+    glVertexAttribPointer(
+        1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, u))
+    );
+    glEnableVertexAttribArray(1);
+    // Normal
+    glVertexAttribPointer(
+        2, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal))
+    );
+    glEnableVertexAttribArray(2);
 }
 
 void Chunk::render(Camera camera) {
@@ -176,7 +242,8 @@ void Chunk::render(Camera camera) {
 
     // Render
     GL_CALL(glBindVertexArray(VAO));
-    GL_CALL(glDrawElements(
-        GL_TRIANGLES, sizeof(cubeIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0
-    ));
+    // GL_CALL(glDrawElements(
+    //     GL_TRIANGLES, sizeof(cubeIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0
+    // ));
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, allCubeVertices.size()));
 }

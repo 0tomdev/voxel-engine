@@ -6,11 +6,20 @@
 
 class Chunk {
 public:
+    struct Vertex {
+        float x, y, z;
+        float u, v;
+        // Normals can only have 6 possible states because we are using cubes
+        unsigned int normal;
+    };
+    enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
+
     static std::optional<Shader> shader;
     static unsigned int vertexColorLocation;
     static unsigned int modelLoc;
     static unsigned int viewLoc;
     static unsigned int projectionLoc;
+    static std::vector<Vertex> allCubeVertices;
 
     static void init();
 

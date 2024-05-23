@@ -83,6 +83,9 @@
     "type_traits": "cpp",
     "utility": "cpp",
     "ranges": "cpp",
-    "stdfloat": "cpp"
+    "stdfloat": "cpp",
+    "cassert": "cpp",
+    "*.ipp": "cpp",
+    "*.inc": "cpp"
   }
 }
