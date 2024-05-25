@@ -1,0 +1,3 @@
+#include <set>
+
+class ChunkMesh {};

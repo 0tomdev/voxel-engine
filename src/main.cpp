@@ -79,7 +79,7 @@ int main() {
     //     }
     // );
 
-    utils::Texture texture("./assets/textures/diamond_ore.png");
+    utils::Texture texture("./assets/textures/stone_bricks.png");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -106,7 +106,7 @@ int main() {
         lastFrame = currentFrame;
 
         // Input
-        const float cameraSpeed = 2.5 * deltaTime;
+        const float cameraSpeed = 5 * deltaTime;
 
         glm::vec3 newCamFront = camera.getDirection();
         newCamFront.y = 0;
@@ -133,8 +133,8 @@ int main() {
 
         camera.calculateDirection();
 
-        // glEnable(GL_CULL_FACE);
-        // glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         chunk.render(camera);
 
         // check and call events and swap the buffers

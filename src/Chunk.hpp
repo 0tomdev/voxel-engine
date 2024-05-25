@@ -14,6 +14,10 @@ public:
     };
     enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
 
+    static const int CHUNK_SIZE = 16;
+    static const int CHUNK_HEIGHT = 32;
+    static const int CHUNK_ARRAY_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
+
     static std::optional<Shader> shader;
     static unsigned int vertexColorLocation;
     static unsigned int modelLoc;
@@ -24,9 +28,10 @@ public:
     static void init();
 
     unsigned int VAO;
-    BlockID data[CHUNK_SIZE] = { 0 };
+    BlockID* data;
 
     Chunk();
+    ~Chunk();
 
     void render(Camera camera);
 };

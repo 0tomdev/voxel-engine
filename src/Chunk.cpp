@@ -114,27 +114,27 @@ unsigned int Chunk::projectionLoc;
 std::vector<Chunk::Vertex> Chunk::allCubeVertices = {
     { 1, 1, 0, 1, 1, 0 }, { 1, 1, 1, 0, 1, 0 }, { 1, 0, 0, 1, 0, 0 },
 
-    { 1, 0, 0, 1, 0, 0 }, { 1, 0, 1, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0 },
+    { 1, 0, 1, 0, 0, 0 }, { 1, 0, 0, 1, 0, 0 }, { 1, 1, 1, 0, 1, 0 },
 
-    { 0, 1, 0, 0, 1, 1 }, { 0, 1, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0, 1 },
+    { 0, 1, 1, 1, 1, 1 }, { 0, 1, 0, 0, 1, 1 }, { 0, 0, 0, 0, 0, 1 },
 
     { 0, 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0, 1 }, { 0, 1, 1, 1, 1, 1 },
 
-    { 0, 1, 0, 0, 1, 2 }, { 1, 1, 0, 1, 1, 2 }, { 0, 1, 1, 0, 0, 2 },
+    { 1, 1, 0, 1, 1, 2 }, { 0, 1, 0, 0, 1, 2 }, { 0, 1, 1, 0, 0, 2 },
 
     { 0, 1, 1, 0, 0, 2 }, { 1, 1, 1, 1, 0, 2 }, { 1, 1, 0, 1, 1, 2 },
 
     { 0, 0, 0, 0, 0, 3 }, { 1, 0, 0, 1, 0, 3 }, { 0, 0, 1, 0, 1, 3 },
 
-    { 0, 0, 1, 0, 1, 3 }, { 1, 0, 1, 1, 1, 3 }, { 1, 0, 0, 1, 0, 3 },
+    { 1, 0, 1, 1, 1, 3 }, { 0, 0, 1, 0, 1, 3 }, { 1, 0, 0, 1, 0, 3 },
 
-    { 0, 1, 1, 0, 1, 4 }, { 1, 1, 1, 1, 1, 4 }, { 0, 0, 1, 0, 0, 4 },
+    { 1, 1, 1, 1, 1, 4 }, { 0, 1, 1, 0, 1, 4 }, { 0, 0, 1, 0, 0, 4 },
 
     { 0, 0, 1, 0, 0, 4 }, { 1, 0, 1, 1, 0, 4 }, { 1, 1, 1, 1, 1, 4 },
 
     { 0, 1, 0, 0, 1, 5 }, { 1, 1, 0, 1, 1, 5 }, { 0, 0, 0, 0, 0, 5 },
 
-    { 0, 0, 0, 0, 0, 5 }, { 1, 0, 0, 1, 0, 5 }, { 1, 1, 0, 1, 1, 5 }
+    { 1, 0, 0, 1, 0, 5 }, { 0, 0, 0, 0, 0, 5 }, { 1, 1, 0, 1, 1, 5 }
 };
 
 /**
@@ -198,7 +198,12 @@ void Chunk::init() {
 }
 
 Chunk::Chunk() {
-    memset(data, 1, CHUNK_SIZE * sizeof(BlockID));
+    data = new BlockID[CHUNK_ARRAY_SIZE];
+    memset(data, 1, CHUNK_ARRAY_SIZE);
+    data[6] = 0;
+    data[23] = 0;
+    data[56] = 0;
+    data[185] = 0;
     // for (int i = 0; i < CHUNK_SIZE; i++) {
     //     std::cout << (int)data[i] << " ";
     // }
@@ -243,8 +248,11 @@ Chunk::Chunk() {
     glEnableVertexAttribArray(2);
 }
 
+Chunk::~Chunk() {
+    delete[] data;
+}
+
 void Chunk::render(Camera camera) {
-    glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(45.0f), Global::screenWidth / (float)Global::screenHeight, 0.1f,
@@ -257,14 +265,30 @@ void Chunk::render(Camera camera) {
     const Shader& shaderValue = shader.value();
     GL_CALL(glUseProgram(shaderValue.ID));
     GL_CALL(glUniform1f(vertexColorLocation, timeValue));
-    GL_CALL(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
     GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
     GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
 
-    // Render
-    GL_CALL(glBindVertexArray(VAO));
-    // GL_CALL(glDrawElements(
-    //     GL_TRIANGLES, sizeof(cubeIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0
-    // ));
-    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, allCubeVertices.size()));
+    int i = 0;
+    for (int y = 0; y < CHUNK_HEIGHT; y++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(x, y, z));
+                // Render
+                if (data[i]) {
+                    GL_CALL(
+                        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model))
+                    );
+                    GL_CALL(glBindVertexArray(VAO));
+                    // GL_CALL(glDrawElements(
+                    //     GL_TRIANGLES, sizeof(cubeIndices) / sizeof(unsigned int),
+                    //     GL_UNSIGNED_INT,
+                    //     0
+                    // ));
+                    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, allCubeVertices.size()));
+                }
+                i++;
+            }
+        }
+    }
 }
