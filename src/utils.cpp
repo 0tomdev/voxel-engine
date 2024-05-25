@@ -24,3 +24,13 @@ utils::Texture::Texture(const char* filePath) {
     }
     stbi_image_free(data);
 }
+
+utils::ScopeTimer::ScopeTimer() {
+    // message = msg;
+    start = std::chrono::high_resolution_clock::now();
+}
+utils::ScopeTimer::~ScopeTimer() {
+    auto end = std::chrono::high_resolution_clock::now();
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Timer took " << durationMs.count() << "ms\n";
+}

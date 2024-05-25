@@ -86,6 +86,20 @@
     "stdfloat": "cpp",
     "cassert": "cpp",
     "*.ipp": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "__std_stream": "cpp",
+    "any": "cpp",
+    "cinttypes": "cpp",
+    "codecvt": "cpp",
+    "csignal": "cpp",
+    "numbers": "cpp",
+    "queue": "cpp",
+    "semaphore": "cpp",
+    "shared_mutex": "cpp",
+    "source_location": "cpp",
+    "stack": "cpp",
+    "strstream": "cpp",
+    "unordered_set": "cpp",
+    "valarray": "cpp"
   }
 }

@@ -11,7 +11,6 @@ Camera::Camera() {}
 glm::mat4 Camera::getViewMatrix() const {
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::lookAt(position, position + direction, up);
-
     return view;
 }
 
@@ -24,12 +23,6 @@ void Camera::calculateDirection() {
     direction.y = sin(vAngle);
 
     direction = glm::normalize(direction);
-
-    // Positive z is towards the screen
-    // Positive y is up
-    // Positive x is right
-    // std::cout << "Position:" << position.x << ", " << position.y << ", " << position.z
-    //           << "\n";
 }
 
 void Camera::updateFromMouse(const glm::vec2& mouseOffset) {

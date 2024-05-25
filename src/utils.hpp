@@ -1,4 +1,7 @@
+#pragma once
+
 #include <iostream>
+#include <chrono>
 
 namespace utils {
 struct Texture {
@@ -7,5 +10,15 @@ struct Texture {
     int nrChannels;
 
     Texture(const char* imagePath);
+};
+
+class ScopeTimer {
+public:
+    ScopeTimer();
+    ~ScopeTimer();
+
+private:
+    const char* message;
+    std::chrono::time_point<std::chrono::steady_clock> start;
 };
 } // namespace utils

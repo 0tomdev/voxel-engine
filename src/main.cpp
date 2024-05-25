@@ -12,8 +12,11 @@
 #include "Chunk.hpp"
 #include "global.hpp"
 #include "utils.hpp"
+#include "ChunkMesh.hpp"
 
 bool mouseCaptured = true;
+bool wireFrameMode = false;
+bool firstMouse = true;
 
 Camera camera;
 
@@ -22,9 +25,15 @@ glm::vec2 mousePos = glm::vec2(Global::screenWidth, Global::screenHeight) / 2.0f
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         mouseCaptured = !mouseCaptured;
+        if (mouseCaptured) firstMouse = true;
         glfwSetInputMode(
             window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL
         );
+    } else if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+        wireFrameMode = !wireFrameMode;
+        glPolygonMode(
+            GL_FRONT_AND_BACK, wireFrameMode ? GL_LINE : GL_FILL
+        ); // Wireframe mode
     }
 }
 // test
@@ -32,6 +41,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     // std::cout << xpos << " " << ypos << "\n";
     if (!mouseCaptured) return;
+    if (firstMouse) {
+        mousePos = glm::vec2(xpos, ypos);
+        firstMouse = false;
+    }
 
     glm::vec2 offset = glm::vec2(xpos, ypos) - mousePos;
     offset.y *= -1; // reversed since y-coordinates range from bottom to top
@@ -89,8 +102,6 @@ int main() {
     //     100.0f
     // );
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
-
     float deltaTime = 0.0f; // Time between current frame and last frame
     float lastFrame = 0.0f; // Time of last frame
 
@@ -99,6 +110,7 @@ int main() {
     Chunk::init();
 
     Chunk chunk;
+    ChunkMesh mesh(chunk);
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -136,6 +148,7 @@ int main() {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         chunk.render(camera);
+        // mesh.render();
 
         // check and call events and swap the buffers
         glfwSwapBuffers(window);

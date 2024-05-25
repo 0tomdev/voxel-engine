@@ -7,17 +7,9 @@
 #include <iostream>
 
 class Camera {
-private:
-    float pitch = 0;
-    float yaw = -90;
-    float sensitivity = 0.1;
-    const glm::vec3 up = glm::vec3(0, 1, 0);
-    glm::vec3 direction;
-
 public:
     glm::vec3 position = glm::vec3(0, 0, 3);
 
-public:
     Camera();
 
     const glm::vec3& getDirection();
@@ -26,4 +18,11 @@ public:
     glm::mat4 getViewMatrix() const;
     void updateFromMouse(const glm::vec2& mouseOffset);
     void calculateDirection();
+
+private:
+    float pitch = 0;
+    float yaw = 0;
+    float sensitivity = 0.1;
+    const glm::vec3 up = glm::vec3(0, 1, 0);
+    glm::vec3 direction;
 };

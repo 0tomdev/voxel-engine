@@ -199,11 +199,14 @@ void Chunk::init() {
 
 Chunk::Chunk() {
     data = new BlockID[CHUNK_ARRAY_SIZE];
-    memset(data, 1, CHUNK_ARRAY_SIZE);
-    data[6] = 0;
-    data[23] = 0;
-    data[56] = 0;
-    data[185] = 0;
+    memset(data, 0, CHUNK_ARRAY_SIZE);
+    data[4] = 1;
+    data[5] = 1;
+    data[6] = 1;
+    data[5 + CHUNK_SIZE * CHUNK_SIZE] = 1;
+    data[5 + CHUNK_SIZE] = 1;
+    data[6 + CHUNK_SIZE] = 1;
+    data[7 + CHUNK_SIZE] = 1;
     // for (int i = 0; i < CHUNK_SIZE; i++) {
     //     std::cout << (int)data[i] << " ";
     // }

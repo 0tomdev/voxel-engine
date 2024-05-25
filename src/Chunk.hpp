@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glm/glm.hpp>
 
 #include "misc.hpp"
@@ -15,7 +17,7 @@ public:
     enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
 
     static const int CHUNK_SIZE = 16;
-    static const int CHUNK_HEIGHT = 32;
+    static const int CHUNK_HEIGHT = 8;
     static const int CHUNK_ARRAY_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
     static std::optional<Shader> shader;
