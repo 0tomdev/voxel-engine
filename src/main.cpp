@@ -81,7 +81,6 @@ int main() {
         return -1;
     }
 
-    glEnable(GL_DEPTH_TEST);
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     // glfwSetWindowSizeCallback(
@@ -111,6 +110,10 @@ int main() {
 
     Chunk chunk;
     ChunkMesh mesh(chunk);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -145,10 +148,10 @@ int main() {
 
         camera.calculateDirection();
 
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        // glEnable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
         chunk.render(camera);
-        // mesh.render();
+        mesh.render(camera);
 
         // check and call events and swap the buffers
         glfwSwapBuffers(window);

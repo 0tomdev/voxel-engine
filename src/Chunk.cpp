@@ -10,25 +10,7 @@
 
 #include "Chunk.hpp"
 #include "global.hpp"
-
-// #define GL_CALL(x)                                                                       \
-//     glClearErrors();                                                                     \
-//     x;                                                                                   \
-//     glPrintErrors(#x)
-
-#define GL_CALL(x) x
-
-void glClearErrors() {
-    while (glGetError() != GL_NO_ERROR)
-        ;
-}
-
-void glPrintErrors(const char* function) {
-    while (GLenum error = glGetError()) {
-        std::cout << "OpenGL error: 0x" << std::hex << error << "\n";
-        std::cout << "\t" << function << std::endl;
-    }
-}
+#include "utils.hpp"
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -111,6 +93,7 @@ unsigned int Chunk::vertexColorLocation;
 unsigned int Chunk::modelLoc;
 unsigned int Chunk::viewLoc;
 unsigned int Chunk::projectionLoc;
+unsigned int Chunk::opacityLoc;
 std::vector<Chunk::Vertex> Chunk::allCubeVertices = {
     { 1, 1, 0, 1, 1, 0 }, { 1, 1, 1, 0, 1, 0 }, { 1, 0, 0, 1, 0, 0 },
 
@@ -147,6 +130,7 @@ void Chunk::init() {
     Chunk::modelLoc = glGetUniformLocation(shaderValue.ID, "model");
     Chunk::viewLoc = glGetUniformLocation(shaderValue.ID, "view");
     Chunk::projectionLoc = glGetUniformLocation(shaderValue.ID, "projection");
+    Chunk::opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
 
     return;
     // Generate actual cube vertices
@@ -212,12 +196,10 @@ Chunk::Chunk() {
     // }
     // std::cout << "\n";
 
-    unsigned int EBO; // element buffer object
-    unsigned int buffer;
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &buffer);
-    glGenBuffers(1, &EBO);
+    std::cout << "chunk vbo: " << buffer << "\n";
+    // glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
@@ -227,14 +209,6 @@ Chunk::Chunk() {
         GL_ARRAY_BUFFER, allCubeVertices.size() * sizeof(Vertex), &allCubeVertices[0],
         GL_STATIC_DRAW
     );
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW
-    );
-
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // glEnableVertexAttribArray(0);
 
     // xyz coords
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
@@ -262,15 +236,15 @@ void Chunk::render(Camera camera) {
         100.0f
     );
 
-    float timeValue = glfwGetTime();
-
     // Shader
     const Shader& shaderValue = shader.value();
     GL_CALL(glUseProgram(shaderValue.ID));
-    GL_CALL(glUniform1f(vertexColorLocation, timeValue));
     GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
     GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
+    GL_CALL(glUniform1f(opacityLoc, 0.1f));
 
+    GL_CALL(glBindVertexArray(VAO));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, buffer));
     int i = 0;
     for (int y = 0; y < CHUNK_HEIGHT; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
@@ -282,12 +256,6 @@ void Chunk::render(Camera camera) {
                     GL_CALL(
                         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model))
                     );
-                    GL_CALL(glBindVertexArray(VAO));
-                    // GL_CALL(glDrawElements(
-                    //     GL_TRIANGLES, sizeof(cubeIndices) / sizeof(unsigned int),
-                    //     GL_UNSIGNED_INT,
-                    //     0
-                    // ));
                     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, allCubeVertices.size()));
                 }
                 i++;

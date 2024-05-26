@@ -6,6 +6,18 @@
 
 #include "utils.hpp"
 
+void clearGlErrors() {
+    while (glGetError() != GL_NO_ERROR)
+        ;
+}
+
+void printGlErrors(const char* function) {
+    while (GLenum error = glGetError()) {
+        std::cout << "OpenGL error: 0x" << std::hex << error << "\n";
+        std::cout << "\t" << function << std::endl;
+    }
+}
+
 utils::Texture::Texture(const char* filePath) {
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(filePath, &width, &height, &nrChannels, 0);

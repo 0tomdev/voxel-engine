@@ -3,6 +3,19 @@
 #include <iostream>
 #include <chrono>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#define GL_CALL(x)                                                                       \
+    clearGlErrors();                                                                     \
+    x;                                                                                   \
+    printGlErrors(#x)
+
+// #define GL_CALL(x) x
+
+void clearGlErrors();
+void printGlErrors(const char* function);
+
 namespace utils {
 struct Texture {
     unsigned int id; // OpenGL id

@@ -25,11 +25,13 @@ public:
     static unsigned int modelLoc;
     static unsigned int viewLoc;
     static unsigned int projectionLoc;
+    static unsigned int opacityLoc;
     static std::vector<Vertex> allCubeVertices;
 
     static void init();
 
     unsigned int VAO;
+    unsigned int buffer;
     BlockID* data;
 
     Chunk();
