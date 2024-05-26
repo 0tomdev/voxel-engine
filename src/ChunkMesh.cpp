@@ -14,10 +14,10 @@ static const size_t vertexSize = 5 * sizeof(float) + sizeof(unsigned int);
 // clang-format off
 static std::vector<ChunkMesh::Vertex> allCubeVertices = {
     // +x
-    { 1, 1, 0, 1, 1, 0 }, { 1, 1, 1, 0, 1, 0 }, { 1, 0, 0, 1, 0, 0 }, { 1, 0, 1, 0, 0, 0 },
+    { 1, 0, 0, 1, 0, 0 }, { 1, 1, 0, 1, 1, 0 }, { 1, 0, 1, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0 },
 
     // -x
-    { 0, 1, 1, 1, 1, 1 }, { 0, 1, 0, 0, 1, 1 }, { 0, 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0, 1 },
+    { 0, 0, 0, 0, 0, 1 }, { 0, 1, 0, 0, 1, 1 }, { 0, 0, 1, 1, 0, 1 }, { 0, 1, 1, 1, 1, 1 },
 
     // +y
     { 1, 1, 0, 1, 1, 2 }, { 0, 1, 0, 0, 1, 2 }, { 0, 1, 1, 0, 0, 2 }, { 1, 1, 1, 1, 0, 2 },
@@ -41,17 +41,14 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
     for (int y = 0; y < Chunk::CHUNK_HEIGHT; y++) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
-                Vertex v1 = allCubeVertices[8];
-                Vertex v2 = allCubeVertices[9];
-                Vertex v3 = allCubeVertices[10];
-                Vertex v4 = allCubeVertices[11];
-                v1.pos += glm::vec3(x, y, z);
-                v2.pos += glm::vec3(x, y, z);
-                v3.pos += glm::vec3(x, y, z);
-                v4.pos += glm::vec3(x, y, z);
+                int facing = 1;
+                Vertex v1 = allCubeVertices[facing * 4 + 0];
+                Vertex v2 = allCubeVertices[facing * 4 + 1];
+                Vertex v3 = allCubeVertices[facing * 4 + 2];
+                Vertex v4 = allCubeVertices[facing * 4 + 3];
 
                 if (chunk.data[i]) {
-                    addQuad(v1, v2, v3, v4);
+                    addQuad(v1, v2, v3, v4, glm::vec3(x, y, z));
                 }
                 i++;
             }
@@ -88,9 +85,17 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
     }
 }
 
-void ChunkMesh::addQuad(Vertex v1, Vertex v2, Vertex v3, Vertex v4) {
+void ChunkMesh::addQuad(
+    Vertex v1, Vertex v2, Vertex v3, Vertex v4, const glm::vec3& offset
+) {
+    v1.pos += offset;
+    v2.pos += offset;
+    v3.pos += offset;
+    v4.pos += offset;
+    // 0, 1, 2
+    // 2, 1, 4
     addTriangle(v1, v2, v3);
-    addTriangle(v3, v1, v4);
+    addTriangle(v3, v2, v4);
 }
 
 void ChunkMesh::addVertex(Vertex vert) {}
@@ -108,7 +113,7 @@ void ChunkMesh::render(Camera& camera) const {
         100.0f
     );
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0, 0.01, 0));
+    model = glm::translate(model, glm::vec3(1, 1, 1) * -0.01f);
 
     // Shader
     const Shader& shaderValue = Chunk::shader.value();
