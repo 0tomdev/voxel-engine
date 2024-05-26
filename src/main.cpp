@@ -150,7 +150,7 @@ int main() {
 
         // glEnable(GL_CULL_FACE);
         // glCullFace(GL_BACK);
-        chunk.render(camera);
+        // chunk.render(camera);
         mesh.render(camera);
 
         // check and call events and swap the buffers

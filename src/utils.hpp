@@ -17,6 +17,9 @@ void clearGlErrors();
 void printGlErrors(const char* function);
 
 namespace utils {
+
+enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
+
 struct Texture {
     unsigned int id; // OpenGL id
     int width, height;
@@ -34,4 +37,5 @@ private:
     const char* message;
     std::chrono::time_point<std::chrono::steady_clock> start;
 };
+
 } // namespace utils

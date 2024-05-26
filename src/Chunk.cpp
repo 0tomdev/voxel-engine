@@ -183,14 +183,15 @@ void Chunk::init() {
 
 Chunk::Chunk() {
     data = new BlockID[CHUNK_ARRAY_SIZE];
-    memset(data, 0, CHUNK_ARRAY_SIZE);
-    data[4] = 1;
-    data[5] = 1;
-    data[6] = 1;
-    data[5 + CHUNK_SIZE * CHUNK_SIZE] = 1;
-    data[5 + CHUNK_SIZE] = 1;
-    data[6 + CHUNK_SIZE] = 1;
-    data[7 + CHUNK_SIZE] = 1;
+    memset(data, 1, CHUNK_ARRAY_SIZE);
+    setBlock({ 8, 5, 8 }, 0);
+    // data[4] = 1;
+    // data[5] = 1;
+    // data[6] = 1;
+    // data[5 + CHUNK_SIZE * CHUNK_SIZE] = 1;
+    // data[5 + CHUNK_SIZE] = 1;
+    // data[6 + CHUNK_SIZE] = 1;
+    // data[7 + CHUNK_SIZE] = 1;
     // for (int i = 0; i < CHUNK_SIZE; i++) {
     //     std::cout << (int)data[i] << " ";
     // }
@@ -198,7 +199,6 @@ Chunk::Chunk() {
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &buffer);
-    std::cout << "chunk vbo: " << buffer << "\n";
     // glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
@@ -262,4 +262,22 @@ void Chunk::render(Camera camera) {
             }
         }
     }
+}
+
+int Chunk::getIndex(glm::vec3 pos) const {
+    int idx = pos.y * CHUNK_SIZE * CHUNK_SIZE;
+    idx += pos.z * CHUNK_SIZE;
+    idx += pos.x;
+    return idx;
+}
+
+BlockID Chunk::getBlock(glm::vec3 pos) const {
+    int idx = getIndex(pos);
+    assert(idx >= 0 && idx < CHUNK_ARRAY_SIZE);
+    return data[idx];
+}
+
+void Chunk::setBlock(glm::vec3 pos, BlockID block) {
+    int idx = getIndex(pos);
+    data[idx] = block;
 }

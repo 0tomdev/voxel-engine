@@ -26,7 +26,6 @@ private:
     // std::vector<Vertex> vertices;
     // std::vector<unsigned int> triangles;
 
-    void addQuad(Vertex v1, Vertex v2, Vertex v3, Vertex v4, const glm::vec3& offset);
-    void addVertex(Vertex vert);
+    void addQuad(const glm::vec3& pos, int facing);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
 };
