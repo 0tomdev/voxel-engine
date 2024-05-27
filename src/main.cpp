@@ -91,7 +91,7 @@ int main() {
     //     }
     // );
 
-    utils::Texture texture("./assets/textures/stone_bricks.png");
+    utils::Texture texture("./assets/textures/texture_atlas.png");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -150,6 +150,7 @@ int main() {
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+        glBindTexture(GL_TEXTURE_2D, texture.id);
         // chunk.render(camera);
         mesh.render(camera);
 
