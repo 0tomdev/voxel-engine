@@ -1,29 +1,39 @@
-# Directories
-S_DIR = src
-B_DIR = build
-INCLUDE_DIRS = -I/opt/homebrew/include
+# Compilier options
+CC := clang++
+CFLAGS := -std=c++20
 
-# Files
-S_FILES = $(wildcard $(S_DIR)/*.cpp)
-OBJ_FILES = $(patsubst $(S_DIR)/%.cpp,$(B_DIR)/%.o,$(S_FILES))
+BUILD_DIR := build
+SRC_DIR := src
+OUTPUT := $(BUILD_DIR)/Graphics
 
-# Libraries for GLEW and GLFW
-GLEW_LIB = -lGLEW
-GLFW_LIB = -lglfw -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+# Libraries and include paths
+INCLUDE_FLAGS := -Iinclude
+LIB_FLAGS := -Llibraries -lGLEW -lglfw3
 
-# Output
-EXEC = $(B_DIR)/Graphics
+ifeq ($(shell uname), Darwin)
+	LIB_FLAGS += -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -framework Metal
+# else
+# 	LIB_FLAGS += -lm -lpthread -ldl -lrt -lX11
+endif
 
-all: $(EXEC)
+# Source files
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
 
-$(EXEC): $(OBJ_FILES)
-	clang++ $^ -o $@ -std=c++20 -L/opt/homebrew/lib $(GLEW_LIB) $(GLFW_LIB)
+# Obj files
+OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
 
-$(B_DIR)/%.o: $(S_DIR)/%.cpp
-	clang++ -c $< -o $@ $(INCLUDE_DIRS) -std=c++20
+all: $(OUTPUT) run
 
-run: $(EXEC)
-	./$(EXEC)
+$(OUTPUT): $(OBJ)
+	$(CC) $(OBJ) -o $(OUTPUT) $(LIB_FLAGS)
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE_FLAGS) $< -o $@
 
 clean:
-	rm -rf $(B_DIR)/*
+	rm -rf $(BUILD_DIR)/*
+
+run: $(OUTPUT)
+	./$(OUTPUT)
+
+.PHONY: all clean run
