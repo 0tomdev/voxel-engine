@@ -7,16 +7,10 @@
 
 class Chunk {
 public:
-    struct Vertex {
-        float x, y, z;
-        float u, v;
-        // Normals can only have 6 possible states because we are using cubes
-        unsigned int normal;
-    };
     enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
 
     static const int CHUNK_SIZE = 16;
-    static const int CHUNK_HEIGHT = 8;
+    static const int CHUNK_HEIGHT = 256;
     static const int CHUNK_ARRAY_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
     static std::optional<Shader> shader;
@@ -25,12 +19,9 @@ public:
     static unsigned int viewLoc;
     static unsigned int projectionLoc;
     static unsigned int opacityLoc;
-    static std::vector<Vertex> allCubeVertices;
 
     static void init();
 
-    unsigned int VAO;
-    unsigned int buffer;
     BlockID* data;
 
     Chunk();

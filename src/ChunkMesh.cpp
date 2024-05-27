@@ -9,6 +9,40 @@
 #include "utils.hpp"
 #include "global.hpp"
 
+// https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
+// Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
+/*  3D CUBE
+ *  0-------1
+ *  | 2-----+-3
+ *  | |     | |
+ *  | |     | |
+ *  4-+-----5 |
+ *    6-------7
+ *
+ * TOP (y=1)
+ * 0-------1
+ * |       |
+ * |       |
+ * |       |
+ * 2-------3
+ *
+ * BOTTOM (y=0)
+ * 4-------5
+ * |       |
+ * |       |
+ * |       |
+ * 6-------7
+ *
+ * east (+x) -->
+ * west (-x) <--
+ * up (+y) ⬆
+ * down (-y) ⬇
+ * south (+z) into your face
+ * north (-z) into the screen
+ *
+ *
+ */
+
 static const size_t vertexSize = 5 * sizeof(float) + sizeof(unsigned int);
 
 // clang-format off
@@ -45,6 +79,7 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::vec3(x, y, z);
                 BlockID block = chunk.getBlock(pos);
+                // std::cout << chunk.getIndex(pos) << " " << i << "\n";
                 assert(block == chunk.data[i]);
 
                 bool prevX = x > 0 ? chunk.getBlock({ x - 1, y, z }) : false;
@@ -88,8 +123,8 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
         }
     }
 
-    std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize
-              << " bytes\n";
+    std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize / 1024
+              << " kb\n";
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);

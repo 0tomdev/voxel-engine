@@ -4,11 +4,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <iostream>
+#include "Chunk.hpp"
 
 class Camera {
 public:
-    glm::vec3 position = glm::vec3(0, 0, 0);
+    glm::vec3 position = glm::vec3(-6, Chunk::CHUNK_HEIGHT / 2, -6);
 
     Camera();
 

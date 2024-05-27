@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chunk.hpp"
+#include "Camera.hpp"
 
 class ChunkMesh {
 public:
