@@ -148,8 +148,8 @@ int main() {
 
         camera.calculateDirection();
 
-        // glEnable(GL_CULL_FACE);
-        // glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         // chunk.render(camera);
         mesh.render(camera);
 

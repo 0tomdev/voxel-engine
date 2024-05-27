@@ -14,7 +14,7 @@ static const size_t vertexSize = 5 * sizeof(float) + sizeof(unsigned int);
 // clang-format off
 static std::vector<ChunkMesh::Vertex> allCubeVertices = {
     // +x
-    { 1, 0, 0, 1, 0, 0 }, { 1, 1, 0, 1, 1, 0 }, { 1, 0, 1, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0 },
+    { 1, 0, 0, 1, 0, 0 }, { 1, 0, 1, 0, 0, 0 }, { 1, 1, 0, 1, 1, 0 }, { 1, 1, 1, 0, 1, 0 },
 
     // -x
     { 0, 0, 0, 0, 0, 1 }, { 0, 1, 0, 0, 1, 1 }, { 0, 0, 1, 1, 0, 1 }, { 0, 1, 1, 1, 1, 1 },
@@ -23,13 +23,13 @@ static std::vector<ChunkMesh::Vertex> allCubeVertices = {
     { 0, 1, 0, 0, 1, 2 }, { 1, 1, 0, 1, 1, 2 }, { 0, 1, 1, 0, 0, 2 }, { 1, 1, 1, 1, 0, 2 },
 
     // -y
-    { 0, 0, 0, 0, 0, 3 }, { 1, 0, 0, 1, 0, 3 }, { 0, 0, 1, 0, 1, 3 }, { 1, 0, 1, 1, 1, 3 },
+    { 0, 0, 0, 0, 0, 3 }, { 0, 0, 1, 0, 1, 3 }, { 1, 0, 0, 1, 0, 3 }, { 1, 0, 1, 1, 1, 3 },
 
     // +z
-    { 0, 0, 1, 0, 0, 4 }, { 1, 0, 1, 1, 0, 4 }, { 0, 1, 1, 0, 1, 4 }, { 1, 1, 1, 1, 1, 4 },
+    { 0, 0, 1, 0, 0, 4 }, { 0, 1, 1, 0, 1, 4 }, { 1, 0, 1, 1, 0, 4 }, { 1, 1, 1, 1, 1, 4 },
 
     // -z
-    { 0, 1, 0, 0, 1, 5 }, { 1, 1, 0, 1, 1, 5 }, { 0, 0, 0, 0, 0, 5 }, { 1, 0, 0, 1, 0, 5 },
+    { 0, 1, 0, 0, 1, 5 }, { 0, 0, 0, 0, 0, 5 }, { 1, 1, 0, 1, 1, 5 }, { 1, 0, 0, 1, 0, 5 },
 };
 // clang-format on
 
@@ -52,13 +52,25 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
                 bool prevZ = z > 0 ? chunk.getBlock({ x, y, z - 1 }) : false;
 
                 if (prevX != (bool)block) {
-                    addQuad(pos, Direction::WEST);
+                    if (x == 0) {
+                        addQuad(pos, Direction::WEST);
+                    } else {
+                        addQuad(pos - glm::vec3(1, 0, 0), Direction::EAST);
+                    }
                 }
                 if (prevY != (bool)block) {
-                    addQuad(pos, Direction::DOWN);
+                    if (y == 0) {
+                        addQuad(pos, Direction::DOWN);
+                    } else {
+                        addQuad(pos - glm::vec3(0, 1, 0), Direction::UP);
+                    }
                 }
                 if (prevZ != (bool)block) {
-                    addQuad(pos, Direction::NORTH);
+                    if (z == 0) {
+                        addQuad(pos, Direction::NORTH);
+                    } else {
+                        addQuad(pos - glm::vec3(0, 0, 1), Direction::SOUTH);
+                    }
                 }
 
                 if (x == Chunk::CHUNK_SIZE - 1 && block) {
@@ -117,8 +129,8 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing) {
     v2.pos += pos;
     v3.pos += pos;
     v4.pos += pos;
-    addTriangle(v1, v2, v3);
-    addTriangle(v3, v2, v4);
+    addTriangle(v1, v3, v2);
+    addTriangle(v3, v4, v2);
 }
 
 void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {

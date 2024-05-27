@@ -134,6 +134,7 @@ void Chunk::init() {
 
     return;
     // Generate actual cube vertices
+    // garbage code
     for (int i = 0; i < 6; i++) {
         Direction dir = (Direction)i;
         std::vector<Vertex> vertices;
@@ -183,19 +184,9 @@ void Chunk::init() {
 
 Chunk::Chunk() {
     data = new BlockID[CHUNK_ARRAY_SIZE];
-    memset(data, 1, CHUNK_ARRAY_SIZE);
-    setBlock({ 8, 5, 8 }, 0);
-    // data[4] = 1;
-    // data[5] = 1;
-    // data[6] = 1;
-    // data[5 + CHUNK_SIZE * CHUNK_SIZE] = 1;
-    // data[5 + CHUNK_SIZE] = 1;
-    // data[6 + CHUNK_SIZE] = 1;
-    // data[7 + CHUNK_SIZE] = 1;
-    // for (int i = 0; i < CHUNK_SIZE; i++) {
-    //     std::cout << (int)data[i] << " ";
-    // }
-    // std::cout << "\n";
+    memset(data, 0, CHUNK_ARRAY_SIZE);
+    memset(data, 1, CHUNK_ARRAY_SIZE - 70 - CHUNK_SIZE * CHUNK_SIZE * 3);
+    // setBlock({ 8, 5, 8 }, 0);
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &buffer);
@@ -227,41 +218,6 @@ Chunk::Chunk() {
 
 Chunk::~Chunk() {
     delete[] data;
-}
-
-void Chunk::render(Camera camera) {
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = glm::perspective(
-        glm::radians(45.0f), Global::screenWidth / (float)Global::screenHeight, 0.1f,
-        100.0f
-    );
-
-    // Shader
-    const Shader& shaderValue = shader.value();
-    GL_CALL(glUseProgram(shaderValue.ID));
-    GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
-    GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
-    GL_CALL(glUniform1f(opacityLoc, 0.1f));
-
-    GL_CALL(glBindVertexArray(VAO));
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-    int i = 0;
-    for (int y = 0; y < CHUNK_HEIGHT; y++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            for (int x = 0; x < CHUNK_SIZE; x++) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(x, y, z));
-                // Render
-                if (data[i]) {
-                    GL_CALL(
-                        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model))
-                    );
-                    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, allCubeVertices.size()));
-                }
-                i++;
-            }
-        }
-    }
 }
 
 int Chunk::getIndex(glm::vec3 pos) const {

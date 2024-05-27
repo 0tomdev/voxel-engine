@@ -4,7 +4,6 @@
 
 #include "misc.hpp"
 #include "Shader.hpp"
-#include "Camera.hpp"
 
 class Chunk {
 public:
@@ -37,7 +36,6 @@ public:
     Chunk();
     ~Chunk();
 
-    void render(Camera camera);
     int getIndex(glm::vec3 pos) const;
     BlockID getBlock(glm::vec3 pos) const;
     void setBlock(glm::vec3 pos, BlockID block);

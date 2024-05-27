@@ -23,7 +23,8 @@ const vec3 normalArray[6] = vec3[](
 void main()
 {
 	vec3 normal = normalArray[normalIdx];
-	vertColor = (normal + 1) / 2.0;
+    // normal *= vec3(0, 0, 1);
+	vertColor = ((normal + 1) / 2.0);
 	gl_Position = projection * view * model * vec4(aPos, 1.0);
 	TexCoord = aTexCoord;
 }
