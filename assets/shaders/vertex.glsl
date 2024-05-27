@@ -3,9 +3,11 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 layout (location = 2) in uint normalIdx;
+layout (location = 3) in int texIdx;
 
 out vec2 TexCoord;
 out vec3 vertColor;
+flat out int textureIdx;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -27,4 +29,6 @@ void main()
 	vertColor = ((normal + 1) / 2.0);
 	gl_Position = projection * view * model * vec4(aPos, 1.0);
 	TexCoord = aTexCoord;
+
+    textureIdx = texIdx;
 }

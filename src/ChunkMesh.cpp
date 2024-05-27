@@ -8,6 +8,7 @@
 #include "ChunkMesh.hpp"
 #include "utils.hpp"
 #include "global.hpp"
+#include "Block.hpp"
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -43,7 +44,7 @@
  *
  */
 
-static const size_t vertexSize = 5 * sizeof(float) + sizeof(unsigned int);
+static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
 
 // clang-format off
 static std::vector<ChunkMesh::Vertex> allCubeVertices = {
@@ -82,40 +83,53 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
                 // std::cout << chunk.getIndex(pos) << " " << i << "\n";
                 assert(block == chunk.data[i]);
 
-                bool prevX = x > 0 ? chunk.getBlock({ x - 1, y, z }) : false;
-                bool prevY = y > 0 ? chunk.getBlock({ x, y - 1, z }) : false;
-                bool prevZ = z > 0 ? chunk.getBlock({ x, y, z - 1 }) : false;
+                // BlockID prevXBlock = chunk.getBlock({x - 1, y, z});
+                // BlockID prevYBlock = chunk.getBlock({x, y - 1, z});
+                // BlockID prevZBlock = chunk.getBlock({x, y, z - 1});
+
+                bool prevX = x > 0 ? chunk.getBlock({x - 1, y, z}) : false;
+                bool prevY = y > 0 ? chunk.getBlock({x, y - 1, z}) : false;
+                bool prevZ = z > 0 ? chunk.getBlock({x, y, z - 1}) : false;
 
                 if (prevX != (bool)block) {
                     if (x == 0) {
-                        addQuad(pos, Direction::WEST);
+                        addQuad(pos, Direction::WEST, blockDefs[block].textureIdx);
                     } else {
-                        addQuad(pos - glm::vec3(1, 0, 0), Direction::EAST);
+                        addQuad(
+                            pos - glm::vec3(1, 0, 0), Direction::EAST,
+                            blockDefs[chunk.getBlock({x - 1, y, z})].textureIdx
+                        );
                     }
                 }
                 if (prevY != (bool)block) {
                     if (y == 0) {
-                        addQuad(pos, Direction::DOWN);
+                        addQuad(pos, Direction::DOWN, blockDefs[block].textureIdx);
                     } else {
-                        addQuad(pos - glm::vec3(0, 1, 0), Direction::UP);
+                        addQuad(
+                            pos - glm::vec3(0, 1, 0), Direction::UP,
+                            blockDefs[chunk.getBlock({x, y - 1, z})].textureIdx
+                        );
                     }
                 }
                 if (prevZ != (bool)block) {
                     if (z == 0) {
-                        addQuad(pos, Direction::NORTH);
+                        addQuad(pos, Direction::NORTH, blockDefs[block].textureIdx);
                     } else {
-                        addQuad(pos - glm::vec3(0, 0, 1), Direction::SOUTH);
+                        addQuad(
+                            pos - glm::vec3(0, 0, 1), Direction::SOUTH,
+                            blockDefs[chunk.getBlock({x, y, z - 1})].textureIdx
+                        );
                     }
                 }
 
                 if (x == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(pos, Direction::EAST);
+                    addQuad(pos, Direction::EAST, blockDefs[block].textureIdx);
                 }
                 if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
-                    addQuad(pos, Direction::UP);
+                    addQuad(pos, Direction::UP, blockDefs[block].textureIdx);
                 }
                 if (z == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(pos, Direction::SOUTH);
+                    addQuad(pos, Direction::SOUTH, blockDefs[block].textureIdx);
                 }
 
                 i++;
@@ -149,13 +163,17 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
         2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
     );
     glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
+    );
+    glEnableVertexAttribArray(3);
 
     // for (auto& v : triangleVerts) {
     //     std::cout << v.pos.x << ", " << v.pos.y << ", " << v.pos.z << "\n";
     // }
 }
 
-void ChunkMesh::addQuad(const glm::vec3& pos, int facing) {
+void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     Vertex v1 = allCubeVertices[facing * 4 + 0];
     Vertex v2 = allCubeVertices[facing * 4 + 1];
     Vertex v3 = allCubeVertices[facing * 4 + 2];
@@ -164,6 +182,10 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing) {
     v2.pos += pos;
     v3.pos += pos;
     v4.pos += pos;
+    v1.textureIdx = textureIdx;
+    v2.textureIdx = textureIdx;
+    v3.textureIdx = textureIdx;
+    v4.textureIdx = textureIdx;
     addTriangle(v1, v3, v2);
     addTriangle(v3, v4, v2);
 }

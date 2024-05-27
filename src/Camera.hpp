@@ -8,7 +8,7 @@
 
 class Camera {
 public:
-    glm::vec3 position = glm::vec3(-6, Chunk::CHUNK_HEIGHT / 2, -6);
+    glm::vec3 position = glm::vec3(-6, Chunk::CHUNK_HEIGHT, -6);
 
     Camera();
 

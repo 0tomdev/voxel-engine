@@ -6,7 +6,7 @@ AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortCaseLabelsOnASingleLine: True
 ColumnLimit: 90
-Cpp11BracedListStyle: False
+Cpp11BracedListStyle: True
 IndentCaseLabels: True
 SortIncludes: Never
 PointerAlignment: Left

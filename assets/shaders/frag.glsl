@@ -4,6 +4,7 @@ out vec4 FragColor;
 
 in vec2 TexCoord;
 in vec3 vertColor;
+flat in int textureIdx;
 
 uniform sampler2D ourTexture;
 uniform float opacity;
@@ -14,23 +15,28 @@ int atlasSize = 16;
 // Height and width of texture atlas image (it's a square)
 int imageSize = 256;
 
-/* Problem
+ivec2 getAtlasPos(int idx) {
+    ivec2 result;
+    result.y = idx / atlasSize;
+    result.y = atlasSize - 1 - result.y;
+    result.x = idx % atlasSize;
+    return result;
+}
 
+/*
  +u
   |
   |
   |
  (0,0)----- +v
-
 */
 
 void main()
 {
-    vec2 atlasPos = vec2(3, 0);
+    vec2 atlasPos = getAtlasPos(textureIdx);
+    // vec2 atlasPos = vec2(2, 15);
 
-    vec2 newTexCoord = TexCoord / atlasSize;
-    // newTexCoord += atlasPos / 16;
-    // newTexCoord.y = 1 - newTexCoord.y;
+    vec2 newTexCoord = (TexCoord + atlasPos) / atlasSize;
     vec4 color = texture(ourTexture, newTexCoord) + vec4(vertColor, 0) * 0.0;
     FragColor = vec4(color.xyz, 1);
     // FragColor = vec4(vertColor.xyz, 1);

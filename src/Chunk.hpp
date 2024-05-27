@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "misc.hpp"
+#include "types.hpp"
 #include "Shader.hpp"
 
 class Chunk {

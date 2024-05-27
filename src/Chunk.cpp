@@ -35,7 +35,9 @@ void Chunk::init() {
 Chunk::Chunk() {
     data = new BlockID[CHUNK_ARRAY_SIZE];
     memset(data, 0, CHUNK_ARRAY_SIZE);
-    memset(data, 1, CHUNK_ARRAY_SIZE / 2 + 107);
+    memset(data, 1, CHUNK_ARRAY_SIZE - 107);
+    data[CHUNK_ARRAY_SIZE - 107] = 2;
+    data[CHUNK_ARRAY_SIZE - 108] = 3;
     // setBlock({ 8, 5, 8 }, 0);
 }
 

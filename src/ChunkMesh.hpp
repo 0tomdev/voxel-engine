@@ -10,6 +10,7 @@ public:
         float u, v;
         // Normals can only have 6 possible states because we are using cubes
         unsigned int normal;
+        int textureIdx;
 
         Vertex(float x, float y, float z, float u, float v, unsigned int normal)
             : pos(x, y, z), u(u), v(v), normal(normal) {}
@@ -24,9 +25,6 @@ private:
     GLuint VAO;
     GLuint VBO;
 
-    // std::vector<Vertex> vertices;
-    // std::vector<unsigned int> triangles;
-
-    void addQuad(const glm::vec3& pos, int facing);
+    void addQuad(const glm::vec3& pos, int facing, int textureIdx);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
 };
