@@ -9,7 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Chunk.hpp"
-#include "global.hpp"
 #include "utils.hpp"
 
 std::optional<Shader> Chunk::shader;
@@ -33,32 +32,40 @@ void Chunk::init() {
 }
 
 Chunk::Chunk() {
-    data = new BlockID[CHUNK_ARRAY_SIZE];
+    data = new BlockId[CHUNK_ARRAY_SIZE];
+    // int height = utils::getRandom<int>(150, 200);
+    int height = 240;
     memset(data, 0, CHUNK_ARRAY_SIZE);
-    memset(data, 1, CHUNK_ARRAY_SIZE - 107);
-    data[CHUNK_ARRAY_SIZE - 107] = 2;
-    data[CHUNK_ARRAY_SIZE - 108] = 3;
-    // setBlock({ 8, 5, 8 }, 0);
+    memset(data, 1, height * CHUNK_SIZE * CHUNK_SIZE);
+    for (int y = 0; y < 3; y++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                BlockId b = y == 0 ? Block::GRASS : Block::DIRT;
+                glm::ivec3 pos(x, height - y, z);
+                setBlock(pos, b);
+            }
+        }
+    }
 }
 
 Chunk::~Chunk() {
     delete[] data;
 }
 
-int Chunk::getIndex(glm::vec3 pos) const {
+int Chunk::getIndex(glm::ivec3 pos) const {
     int idx = pos.y * CHUNK_SIZE * CHUNK_SIZE;
     idx += pos.z * CHUNK_SIZE;
     idx += pos.x;
     return idx;
 }
 
-BlockID Chunk::getBlock(glm::vec3 pos) const {
+BlockId Chunk::getBlock(glm::ivec3 pos) const {
     int idx = getIndex(pos);
     assert(idx >= 0 && idx < CHUNK_ARRAY_SIZE);
     return data[idx];
 }
 
-void Chunk::setBlock(glm::vec3 pos, BlockID block) {
+void Chunk::setBlock(glm::ivec3 pos, BlockId block) {
     int idx = getIndex(pos);
     data[idx] = block;
 }

@@ -11,5 +11,6 @@ IndentCaseLabels: True
 SortIncludes: Never
 PointerAlignment: Left
 AccessModifierOffset: -4
+AlwaysBreakTemplateDeclarations: Yes
 ---
 

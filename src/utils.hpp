@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <random>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -37,5 +38,20 @@ private:
     const char* message;
     std::chrono::time_point<std::chrono::steady_clock> start;
 };
+
+template <typename T>
+T getRandom(T min, T max) {
+    // Create a random device to seed the generator
+    std::random_device rd;
+
+    // Use the Mersenne Twister engine seeded with the random device
+    std::mt19937 gen(rd());
+
+    // Define the distribution range
+    std::uniform_real_distribution<T> dis(min, max);
+
+    // Generate the random number
+    return dis(gen);
+}
 
 } // namespace utils

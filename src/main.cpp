@@ -10,7 +10,6 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 #include "Chunk.hpp"
-#include "global.hpp"
 #include "utils.hpp"
 #include "ChunkMesh.hpp"
 
@@ -18,9 +17,12 @@ bool mouseCaptured = true;
 bool wireFrameMode = false;
 bool firstMouse = true;
 
+int screenWidth = 900;
+int screenHeight = 600;
+
 Camera camera;
 
-glm::vec2 mousePos = glm::vec2(Global::screenWidth, Global::screenHeight) / 2.0f;
+glm::vec2 mousePos = glm::vec2(screenWidth, screenHeight) / 2.0f;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -66,7 +68,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // for mac ig
 
     GLFWwindow* window =
-        glfwCreateWindow(Global::screenWidth, Global::screenHeight, "OpenGL", NULL, NULL);
+        glfwCreateWindow(screenWidth, screenHeight, "OpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create OpenGL window\n";
         glfwTerminate();
@@ -107,6 +109,7 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Chunk::init();
+    Block::initBlocks();
 
     Chunk chunk;
     ChunkMesh mesh(chunk);
@@ -152,7 +155,7 @@ int main() {
         glCullFace(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, texture.id);
         // chunk.render(camera);
-        mesh.render(camera);
+        mesh.render(camera, screenWidth / (float)screenHeight);
 
         // check and call events and swap the buffers
         glfwSwapBuffers(window);

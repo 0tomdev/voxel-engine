@@ -17,10 +17,14 @@ ifeq ($(shell uname), Darwin)
 endif
 
 # Source files
-SRC := $(wildcard $(SRC_DIR)/*.cpp)
+# SRC := $(wildcard $(SRC_DIR)/*.cpp)
+SRC := $(shell find $(SRC_DIR) -name "*.cpp")
+
 
 # Obj files
-OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
+# OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
+OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC))
+
 
 all: $(OUTPUT) run
 
@@ -28,6 +32,7 @@ $(OUTPUT): $(OBJ)
 	$(CC) $(OBJ) -o $(OUTPUT) $(LIB_FLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(INCLUDE_FLAGS) $< -o $@
 
 clean:

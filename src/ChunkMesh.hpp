@@ -18,7 +18,7 @@ public:
 
     ChunkMesh(Chunk& chunk);
 
-    void render(Camera& camera) const;
+    void render(Camera& camera, float aspectRatio) const;
 
 private:
     std::vector<Vertex> triangleVerts; // Does not use EBO

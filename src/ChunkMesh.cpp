@@ -7,8 +7,7 @@
 
 #include "ChunkMesh.hpp"
 #include "utils.hpp"
-#include "global.hpp"
-#include "Block.hpp"
+#include "block/Block.hpp"
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -79,13 +78,13 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::vec3(x, y, z);
-                BlockID block = chunk.getBlock(pos);
+                BlockId block = chunk.getBlock(pos);
                 // std::cout << chunk.getIndex(pos) << " " << i << "\n";
                 assert(block == chunk.data[i]);
 
-                // BlockID prevXBlock = chunk.getBlock({x - 1, y, z});
-                // BlockID prevYBlock = chunk.getBlock({x, y - 1, z});
-                // BlockID prevZBlock = chunk.getBlock({x, y, z - 1});
+                // BlockId prevXBlock = chunk.getBlock({x - 1, y, z});
+                // BlockId prevYBlock = chunk.getBlock({x, y - 1, z});
+                // BlockId prevZBlock = chunk.getBlock({x, y, z - 1});
 
                 bool prevX = x > 0 ? chunk.getBlock({x - 1, y, z}) : false;
                 bool prevY = y > 0 ? chunk.getBlock({x, y - 1, z}) : false;
@@ -93,43 +92,67 @@ ChunkMesh::ChunkMesh(Chunk& chunk) {
 
                 if (prevX != (bool)block) {
                     if (x == 0) {
-                        addQuad(pos, Direction::WEST, blockDefs[block].textureIdx);
+                        addQuad(
+                            pos, Direction::WEST,
+                            Block::blockDefs[block].getTextureIdx(Direction::WEST)
+                        );
                     } else {
                         addQuad(
                             pos - glm::vec3(1, 0, 0), Direction::EAST,
-                            blockDefs[chunk.getBlock({x - 1, y, z})].textureIdx
+                            Block::blockDefs[chunk.getBlock({x - 1, y, z})].getTextureIdx(
+                                Direction::EAST
+                            )
                         );
                     }
                 }
                 if (prevY != (bool)block) {
                     if (y == 0) {
-                        addQuad(pos, Direction::DOWN, blockDefs[block].textureIdx);
+                        addQuad(
+                            pos, Direction::DOWN,
+                            Block::blockDefs[block].getTextureIdx(Direction::DOWN)
+                        );
                     } else {
                         addQuad(
                             pos - glm::vec3(0, 1, 0), Direction::UP,
-                            blockDefs[chunk.getBlock({x, y - 1, z})].textureIdx
+                            Block::blockDefs[chunk.getBlock({x, y - 1, z})].getTextureIdx(
+                                Direction::UP
+                            )
                         );
                     }
                 }
                 if (prevZ != (bool)block) {
                     if (z == 0) {
-                        addQuad(pos, Direction::NORTH, blockDefs[block].textureIdx);
+                        addQuad(
+                            pos, Direction::NORTH,
+                            Block::blockDefs[block].getTextureIdx(Direction::NORTH)
+                        );
                     } else {
                         addQuad(
                             pos - glm::vec3(0, 0, 1), Direction::SOUTH,
-                            blockDefs[chunk.getBlock({x, y, z - 1})].textureIdx
+                            Block::blockDefs[chunk.getBlock({x, y, z - 1})].getTextureIdx(
+                                Direction::SOUTH
+                            )
                         );
                     }
                 }
 
                 if (x == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(pos, Direction::EAST, blockDefs[block].textureIdx);
+                    addQuad(
+                        pos, Direction::EAST,
+                        Block::blockDefs[block].getTextureIdx(Direction::EAST)
+                    );
                 }
                 if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
-                    addQuad(pos, Direction::UP, blockDefs[block].textureIdx);
+                    addQuad(
+                        pos, Direction::UP,
+                        Block::blockDefs[block].getTextureIdx(Direction::UP)
+                    );
                 }
                 if (z == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(pos, Direction::SOUTH, blockDefs[block].textureIdx);
+                    addQuad(
+                        pos, Direction::SOUTH,
+                        Block::blockDefs[block].getTextureIdx(Direction::SOUTH)
+                    );
                 }
 
                 i++;
@@ -196,11 +219,10 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v3);
 }
 
-void ChunkMesh::render(Camera& camera) const {
+void ChunkMesh::render(Camera& camera, float aspectRatio) const {
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = glm::perspective(
-        glm::radians(45.0f), Global::screenWidth / (float)Global::screenHeight, 0.1f,
-        100.0f
+        glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip
     );
     glm::mat4 model = glm::mat4(1.0f);
     // model = glm::translate(model, glm::vec3(1, 1, 1) * -0.01f);

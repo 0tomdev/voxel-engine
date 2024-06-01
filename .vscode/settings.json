@@ -101,5 +101,6 @@
     "strstream": "cpp",
     "unordered_set": "cpp",
     "valarray": "cpp"
-  }
+  },
+  "editor.defaultFormatter": "xaver.clang-format"
 }

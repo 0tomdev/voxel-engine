@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 
-#include "types.hpp"
 #include "Shader.hpp"
+#include "block/Block.hpp"
 
 class Chunk {
 public:
@@ -22,12 +22,12 @@ public:
 
     static void init();
 
-    BlockID* data;
+    BlockId* data;
 
     Chunk();
     ~Chunk();
 
-    int getIndex(glm::vec3 pos) const;
-    BlockID getBlock(glm::vec3 pos) const;
-    void setBlock(glm::vec3 pos, BlockID block);
+    int getIndex(glm::ivec3 pos) const;
+    BlockId getBlock(glm::ivec3 pos) const;
+    void setBlock(glm::ivec3 pos, BlockId block);
 };
