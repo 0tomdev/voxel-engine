@@ -33,8 +33,8 @@ void Chunk::init() {
 
 Chunk::Chunk() {
     data = new BlockId[CHUNK_ARRAY_SIZE];
-    // int height = utils::getRandom<int>(150, 200);
-    int height = 240;
+    int height = utils::getRandom<int>(150, 200);
+    // int height = 240;
     memset(data, 0, CHUNK_ARRAY_SIZE);
     memset(data, 1, height * CHUNK_SIZE * CHUNK_SIZE);
     for (int y = 0; y < 3; y++) {

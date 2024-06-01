@@ -13,12 +13,16 @@
 #include "utils.hpp"
 #include "ChunkMesh.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 bool mouseCaptured = true;
 bool wireFrameMode = false;
 bool firstMouse = true;
 
-int screenWidth = 900;
-int screenHeight = 600;
+int screenWidth = 1200;
+int screenHeight = 800;
 
 Camera camera;
 
@@ -31,11 +35,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetInputMode(
             window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL
         );
-    } else if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+    } else if (key == GLFW_KEY_SLASH && action == GLFW_PRESS) {
         wireFrameMode = !wireFrameMode;
-        glPolygonMode(
-            GL_FRONT_AND_BACK, wireFrameMode ? GL_LINE : GL_FILL
-        ); // Wireframe mode
     }
 }
 // test
@@ -54,6 +55,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     camera.updateFromMouse(offset);
 
     mousePos = glm::vec2(xpos, ypos);
+}
+
+void resizeCallback(GLFWwindow* window, int newWidth, int newHeight) {
+    screenWidth = newWidth;
+    screenHeight = newHeight;
 }
 
 int main() {
@@ -85,13 +91,7 @@ int main() {
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-    // glfwSetWindowSizeCallback(
-    //     window,
-    //     [](GLFWwindow* window, int newWidth, int newHeight) {
-    //         Global::screenWidth = newWidth;
-    //         Global::screenHeight = newHeight;
-    //     }
-    // );
+    glfwSetWindowSizeCallback(window, resizeCallback);
 
     utils::Texture texture("./assets/textures/texture_atlas.png");
 
@@ -117,6 +117,13 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -149,6 +156,14 @@ int main() {
         glClearColor(98 / 255.0f, 162 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glPolygonMode(
+            GL_FRONT_AND_BACK, wireFrameMode ? GL_LINE : GL_FILL
+        ); // Wireframe mode
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         camera.calculateDirection();
 
         glEnable(GL_CULL_FACE);
@@ -157,10 +172,25 @@ int main() {
         // chunk.render(camera);
         mesh.render(camera, screenWidth / (float)screenHeight);
 
+        ImGui::Begin("Debug Info");
+        ImGui::Text("FPS: %f", 60.0f / deltaTime);
+        ImGui::SliderFloat("Position x", &camera.position.x, -100, 100);
+        ImGui::SliderFloat("Position y", &camera.position.y, 0, 255);
+        ImGui::SliderFloat("Position z", &camera.position.z, -100, 100);
+        ImGui::Checkbox("Wireframe mode", &wireFrameMode);
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // check and call events and swap the buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;

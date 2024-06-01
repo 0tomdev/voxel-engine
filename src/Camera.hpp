@@ -8,8 +8,8 @@
 
 class Camera {
 public:
-    glm::vec3 position = glm::vec3(-6, Chunk::CHUNK_HEIGHT, -6);
-    float fov = 45.0f;
+    glm::vec3 position = glm::vec3(6, Chunk::CHUNK_HEIGHT, 6);
+    float fov = 60.0f;
     float nearClip = 0.1f;
     float farClip = 100.0f;
 
@@ -23,7 +23,7 @@ public:
     void calculateDirection();
 
 private:
-    float pitch = 0;
+    float pitch = -89;
     float yaw = 0;
     float sensitivity = 0.1;
     const glm::vec3 up = glm::vec3(0, 1, 0);
