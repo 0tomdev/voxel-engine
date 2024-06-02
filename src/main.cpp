@@ -12,6 +12,7 @@
 #include "Chunk.hpp"
 #include "utils.hpp"
 #include "ChunkMesh.hpp"
+#include "World.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -111,8 +112,7 @@ int main() {
     Chunk::init();
     Block::initBlocks();
 
-    Chunk chunk;
-    ChunkMesh mesh(chunk);
+    World world;
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -120,7 +120,7 @@ int main() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    // ImGuiIO& io = ImGui::GetIO();
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -163,22 +163,38 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuiIO& io = ImGui::GetIO();
 
         camera.calculateDirection();
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, texture.id);
-        // chunk.render(camera);
-        mesh.render(camera, screenWidth / (float)screenHeight);
+        world.render(camera, screenWidth / (float)screenHeight);
 
-        ImGui::Begin("Debug Info");
-        ImGui::Text("FPS: %f", 60.0f / deltaTime);
-        ImGui::SliderFloat("Position x", &camera.position.x, -100, 100);
-        ImGui::SliderFloat("Position y", &camera.position.y, 0, 255);
-        ImGui::SliderFloat("Position z", &camera.position.z, -100, 100);
-        ImGui::Checkbox("Wireframe mode", &wireFrameMode);
-        ImGui::End();
+        {
+            ImGui::Begin("Debug Info");
+
+            ImGui::BeginDisabled(mouseCaptured);
+
+            ImGui::Text("FPS: %f", 60.0f / deltaTime);
+            ImGui::DragFloat("Position x", &camera.position.x, 1, -100, 100);
+            ImGui::DragFloat("Position y", &camera.position.y, 1, 0, 255);
+            ImGui::DragFloat("Position z", &camera.position.z, 1, -100, 100);
+            ImGui::Checkbox("Wireframe mode", &wireFrameMode);
+
+            ImGui::BeginChild("Chunk Info");
+            glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(camera.position);
+            ImGui::Text("World index: (%i, %i)", chunkIdx.x, chunkIdx.y);
+            // ImGui::Text(
+            //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
+            // );
+
+            ImGui::EndChild();
+
+            ImGui::EndDisabled();
+            ImGui::End();
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

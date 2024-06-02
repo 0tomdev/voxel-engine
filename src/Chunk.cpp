@@ -31,12 +31,15 @@ void Chunk::init() {
     Chunk::opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
 }
 
-Chunk::Chunk() {
-    data = new BlockId[CHUNK_ARRAY_SIZE];
+glm::ivec2 Chunk::getChunkWorldIndex(glm::vec3 pos) {
+    return glm::floor(glm::vec2(pos.x, pos.z) / (float)CHUNK_SIZE);
+}
+
+Chunk::Chunk() : data(CHUNK_ARRAY_SIZE) {
     int height = utils::getRandom<int>(150, 200);
-    // int height = 240;
-    memset(data, 0, CHUNK_ARRAY_SIZE);
-    memset(data, 1, height * CHUNK_SIZE * CHUNK_SIZE);
+    // std::cout << "Height: " << height << "\n";
+    memset(data.data(), 0, CHUNK_ARRAY_SIZE);
+    memset(data.data(), 1, height * CHUNK_SIZE * CHUNK_SIZE);
     for (int y = 0; y < 3; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -48,9 +51,7 @@ Chunk::Chunk() {
     }
 }
 
-Chunk::~Chunk() {
-    delete[] data;
-}
+Chunk::~Chunk() {}
 
 int Chunk::getIndex(glm::ivec3 pos) const {
     int idx = pos.y * CHUNK_SIZE * CHUNK_SIZE;

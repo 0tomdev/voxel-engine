@@ -102,5 +102,6 @@
     "unordered_set": "cpp",
     "valarray": "cpp"
   },
-  "editor.defaultFormatter": "xaver.clang-format"
+"editor.defaultFormatter": "xaver.clang-format",
+"cmake.ignoreCMakeListsMissing": true
 }

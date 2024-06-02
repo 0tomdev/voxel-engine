@@ -11,7 +11,7 @@ public:
     glm::vec3 position = glm::vec3(6, Chunk::CHUNK_HEIGHT, 6);
     float fov = 60.0f;
     float nearClip = 0.1f;
-    float farClip = 100.0f;
+    float farClip = 256.0f;
 
     Camera();
 

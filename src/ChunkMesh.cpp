@@ -43,8 +43,6 @@
  *
  */
 
-static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
-
 // clang-format off
 static std::vector<ChunkMesh::Vertex> allCubeVertices = {
     // +x
@@ -67,7 +65,7 @@ static std::vector<ChunkMesh::Vertex> allCubeVertices = {
 };
 // clang-format on
 
-ChunkMesh::ChunkMesh(Chunk& chunk) {
+ChunkMesh::ChunkMesh(const Chunk& chunk) {
     assert(vertexSize == sizeof(Vertex));
     utils::ScopeTimer timer;
 
@@ -219,13 +217,17 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v3);
 }
 
-void ChunkMesh::render(Camera& camera, float aspectRatio) const {
+void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex)
+    const {
+
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip
     );
     glm::mat4 model = glm::mat4(1.0f);
-    // model = glm::translate(model, glm::vec3(1, 1, 1) * -0.01f);
+    model = glm::translate(
+        model, glm::vec3(worldIndex.x, 0, worldIndex.y) * (float)Chunk::CHUNK_SIZE
+    );
 
     // Shader
     const Shader& shaderValue = Chunk::shader.value();
@@ -241,4 +243,8 @@ void ChunkMesh::render(Camera& camera, float aspectRatio) const {
     GL_CALL(glBindVertexArray(VAO));
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, triangleVerts.size()));
+}
+
+size_t ChunkMesh::getSize() const {
+    return triangleVerts.size();
 }

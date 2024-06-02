@@ -41,17 +41,16 @@ private:
 
 template <typename T>
 T getRandom(T min, T max) {
-    // Create a random device to seed the generator
-    std::random_device rd;
+    static std::random_device rd;  // Static to be initialized only once
+    static std::mt19937 gen(rd()); // Static to be initialized only once
 
-    // Use the Mersenne Twister engine seeded with the random device
-    std::mt19937 gen(rd());
-
-    // Define the distribution range
-    std::uniform_real_distribution<T> dis(min, max);
-
-    // Generate the random number
-    return dis(gen);
+    if constexpr (std::is_integral<T>::value) {
+        std::uniform_int_distribution<T> dis(min, max);
+        return dis(gen);
+    } else {
+        std::uniform_real_distribution<T> dis(min, max);
+        return dis(gen);
+    }
 }
 
 } // namespace utils
