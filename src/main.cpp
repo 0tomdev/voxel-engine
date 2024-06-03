@@ -109,7 +109,7 @@ int main() {
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Chunk::init();
+    ChunkMesh::init();
     Block::initBlocks();
 
     World world;

@@ -65,6 +65,26 @@ static std::vector<ChunkMesh::Vertex> allCubeVertices = {
 };
 // clang-format on
 
+static std::optional<Shader> shader;
+static unsigned int vertexColorLocation = -1;
+static unsigned int modelLoc = -1;
+static unsigned int viewLoc = -1;
+static unsigned int projectionLoc = -1;
+static unsigned int opacityLoc = -1;
+
+/**
+ * Load shaders here because GL functions can only be called after glewInit()
+ * */
+void ChunkMesh::init() {
+    shader = Shader("./assets/shaders/vertex.glsl", "./assets/shaders/frag.glsl");
+    const Shader& shaderValue = shader.value();
+    vertexColorLocation = glGetUniformLocation(shaderValue.ID, "time");
+    modelLoc = glGetUniformLocation(shaderValue.ID, "model");
+    viewLoc = glGetUniformLocation(shaderValue.ID, "view");
+    projectionLoc = glGetUniformLocation(shaderValue.ID, "projection");
+    opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
+}
+
 void ChunkMesh::createMeshBetter(const Chunk& chunk) {
     assert(vertexSize == sizeof(Vertex));
     utils::ScopeTimer timer;
@@ -202,14 +222,12 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 world
     );
 
     // Shader
-    const Shader& shaderValue = Chunk::shader.value();
+    const Shader& shaderValue = shader.value();
     GL_CALL(glUseProgram(shaderValue.ID));
-    GL_CALL(glUniformMatrix4fv(Chunk::viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
-    GL_CALL(
-        glUniformMatrix4fv(Chunk::projectionLoc, 1, GL_FALSE, glm::value_ptr(projection))
-    );
-    GL_CALL(glUniformMatrix4fv(Chunk::modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
-    GL_CALL(glUniform1f(Chunk::opacityLoc, 1.0f));
+    GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
+    GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
+    GL_CALL(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
+    GL_CALL(glUniform1f(opacityLoc, 1.0f));
 
     // Render
     GL_CALL(glBindVertexArray(VAO));

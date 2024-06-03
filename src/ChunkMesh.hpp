@@ -5,8 +5,6 @@
 
 class ChunkMesh {
 public:
-    static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
-
     struct Vertex {
         glm::vec3 pos;
         float u, v;
@@ -18,7 +16,11 @@ public:
             : pos(x, y, z), u(u), v(v), normal(normal) {}
     };
 
+    static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
+
     ChunkMesh(const Chunk& chunk);
+
+    static void init();
 
     void render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const;
     size_t getSize() const;
