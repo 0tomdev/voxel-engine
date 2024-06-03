@@ -3,14 +3,13 @@
 #include "World.hpp"
 
 World::World() {
-    // int dist = 0;
-    // for (int z = -dist; z < dist + 1; z++) {
-    //     for (int x = -dist; x < dist + 1; x++) {
-    //         auto idx = glm::ivec2(x, z);
-    //         generateChunk(idx);
-    //     }
-    // }
-    generateChunk({0, 0});
+    int dist = 2;
+    for (int z = -dist; z < dist + 1; z++) {
+        for (int x = -dist; x < dist + 1; x++) {
+            auto idx = glm::ivec2(x, z);
+            generateChunk(idx);
+        }
+    }
 }
 
 BlockId World::getBlock(glm::ivec3 worldPos) const {
@@ -41,9 +40,7 @@ void World::generateChunk(glm::ivec2 worldIdx) {
         for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
             auto worldPos = Chunk::getWorldPosition(worldIdx, glm::ivec3(x, 0, z));
 
-            float height = glm::perlin(glm::vec2(worldPos.x, worldPos.z) / 8.0f);
-            std::cout << worldPos.x << " " << worldPos.z << "\n";
-            // std::cout << height << "\n";
+            float height = glm::perlin(glm::vec2(worldPos.x, worldPos.z) / 32.0f);
             height = utils::mapValue(height, -1.0f, 1.0f, 80.0f, 100.0f);
 
             int intHeight = height;

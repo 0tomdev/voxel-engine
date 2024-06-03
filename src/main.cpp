@@ -131,26 +131,27 @@ int main() {
         lastFrame = currentFrame;
 
         // Input
-        const float cameraSpeed = 5 * deltaTime;
+        static float cameraSpeed = 15;
+        const float camSpeedAdjusted = cameraSpeed * deltaTime;
 
         glm::vec3 newCamFront = camera.getDirection();
         newCamFront.y = 0;
         newCamFront = glm::normalize(newCamFront);
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera.position += cameraSpeed * newCamFront;
+            camera.position += camSpeedAdjusted * newCamFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.position -= cameraSpeed * newCamFront;
+            camera.position -= camSpeedAdjusted * newCamFront;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            camera.position -=
-                glm::normalize(glm::cross(newCamFront, camera.getUp())) * cameraSpeed;
+            camera.position -= glm::normalize(glm::cross(newCamFront, camera.getUp())) *
+                               camSpeedAdjusted;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            camera.position +=
-                glm::normalize(glm::cross(newCamFront, camera.getUp())) * cameraSpeed;
+            camera.position += glm::normalize(glm::cross(newCamFront, camera.getUp())) *
+                               camSpeedAdjusted;
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            camera.position += cameraSpeed * glm::vec3(0, 1, 0);
+            camera.position += camSpeedAdjusted * glm::vec3(0, 1, 0);
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            camera.position += cameraSpeed * glm::vec3(0, -1, 0);
+            camera.position += camSpeedAdjusted * glm::vec3(0, -1, 0);
 
         // Rendering
         glClearColor(98 / 255.0f, 162 / 255.0f, 245 / 255.0f, 1.0f);
@@ -182,6 +183,7 @@ int main() {
             ImGui::DragFloat("Position y", &camera.position.y, 1, 0, 255);
             ImGui::DragFloat("Position z", &camera.position.z, 1, -100, 100);
             ImGui::Checkbox("Wireframe mode", &wireFrameMode);
+            ImGui::SliderFloat("Movement speed", &cameraSpeed, 5.0f, 30.0f);
 
             ImGui::SeparatorText("Chunk Data");
             glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(camera.position);
@@ -194,24 +196,24 @@ int main() {
             //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
             // );
 
-            ImGui::SeparatorText("World Editing");
-            static glm::ivec3 pos;
-            static int blockId;
-            ImGui::InputInt3("Block position", &pos.x);
-            ImGui::InputInt("Block ID", &blockId);
-            auto idx = glm::ivec2(0, 0);
-            if (ImGui::Button("Place Block")) {
-                auto it = world.chunks.find(idx);
-                if (it != world.chunks.end()) {
-                    it->second.setBlock(pos, Block::STONE_BRICKS);
-                }
-            }
-            if (ImGui::Button("Remesh")) {
-                auto it = world.chunks.find(idx);
-                if (it != world.chunks.end()) {
-                    world.chunkMeshes.at(idx) = ChunkMesh(it->second);
-                }
-            }
+            // ImGui::SeparatorText("World Editing");
+            // static glm::ivec3 pos;
+            // static int blockId;
+            // ImGui::InputInt3("Block position", &pos.x);
+            // ImGui::InputInt("Block ID", &blockId);
+            // auto idx = glm::ivec2(0, 0);
+            // if (ImGui::Button("Place Block")) {
+            //     auto it = world.chunks.find(idx);
+            //     if (it != world.chunks.end()) {
+            //         it->second.setBlock(pos, Block::STONE_BRICKS);
+            //     }
+            // }
+            // if (ImGui::Button("Remesh")) {
+            //     auto it = world.chunks.find(idx);
+            //     if (it != world.chunks.end()) {
+            //         world.chunkMeshes.at(idx) = ChunkMesh(it->second);
+            //     }
+            // }
 
             ImGui::EndDisabled();
             ImGui::End();
