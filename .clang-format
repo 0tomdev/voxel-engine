@@ -5,7 +5,7 @@ AlignAfterOpenBracket: BlockIndent
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortCaseLabelsOnASingleLine: True
-ColumnLimit: 90
+ColumnLimit: 100
 Cpp11BracedListStyle: True
 IndentCaseLabels: True
 SortIncludes: Never

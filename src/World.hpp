@@ -7,8 +7,9 @@
 class World {
 public:
     std::unordered_map<glm::ivec2, Chunk> chunks;
-    // Things are going to get messed up if the meshes are being copied around bc of the
-    // VBOs and EBOs
+    /** Things are going to get messed up if the meshes are being copied around bc of the VBOs and
+     * EBOs. Also you can't use operator[] bc there's no default constructor
+     */
     std::unordered_map<glm::ivec2, ChunkMesh> chunkMeshes;
 
     World();

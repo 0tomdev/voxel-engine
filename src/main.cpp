@@ -99,11 +99,6 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // glm::mat4 projection = glm::perspective(
-    //     glm::radians(45.0f), Global::screenWidth / (float)Global::screenHeight, 0.1f,
-    //     100.0f
-    // );
-
     float deltaTime = 0.0f; // Time between current frame and last frame
     float lastFrame = 0.0f; // Time of last frame
 

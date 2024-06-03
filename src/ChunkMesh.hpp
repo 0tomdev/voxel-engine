@@ -19,6 +19,7 @@ public:
     static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
 
     ChunkMesh(const Chunk& chunk);
+    ~ChunkMesh();
 
     static void init();
 
@@ -30,7 +31,6 @@ private:
     GLuint VAO;
     GLuint VBO;
 
-    void createMeshOld(const Chunk& chunk);
     void createMeshBetter(const Chunk& chunk);
 
     void addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk);

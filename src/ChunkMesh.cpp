@@ -209,6 +209,11 @@ ChunkMesh::ChunkMesh(const Chunk& chunk) {
     // createMeshOld(chunk);
 }
 
+ChunkMesh::~ChunkMesh() {
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
+}
+
 void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex)
     const {
 
