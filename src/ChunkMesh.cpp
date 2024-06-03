@@ -65,101 +65,62 @@ static std::vector<ChunkMesh::Vertex> allCubeVertices = {
 };
 // clang-format on
 
-ChunkMesh::ChunkMesh(const Chunk& chunk) {
+void ChunkMesh::createMeshBetter(const Chunk& chunk) {
     assert(vertexSize == sizeof(Vertex));
     utils::ScopeTimer timer;
 
     using Direction = utils::Direction;
 
-    int i = 0;
     for (int y = 0; y < Chunk::CHUNK_HEIGHT; y++) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::vec3(x, y, z);
                 BlockId block = chunk.getBlock(pos);
-                // std::cout << chunk.getIndex(pos) << " " << i << "\n";
-                assert(block == chunk.data[i]);
 
-                // BlockId prevXBlock = chunk.getBlock({x - 1, y, z});
-                // BlockId prevYBlock = chunk.getBlock({x, y - 1, z});
-                // BlockId prevZBlock = chunk.getBlock({x, y, z - 1});
+                BlockId prevXBlock = 0;
+                if (x > 0) prevXBlock = chunk.getBlock({x - 1, y, z});
+                BlockId prevYBlock = 0;
+                if (y > 0) prevYBlock = chunk.getBlock({x, y - 1, z});
+                BlockId prevZBlock = 0;
+                if (z > 0) prevZBlock = chunk.getBlock({x, y, z - 1});
 
-                bool prevX = x > 0 ? chunk.getBlock({x - 1, y, z}) : false;
-                bool prevY = y > 0 ? chunk.getBlock({x, y - 1, z}) : false;
-                bool prevZ = z > 0 ? chunk.getBlock({x, y, z - 1}) : false;
+                // Faces only get added to the current block if they are facing west (1),
+                // down (3), or north (5)
 
-                if (prevX != (bool)block) {
-                    if (x == 0) {
-                        addQuad(
-                            pos, Direction::WEST,
-                            Block::blockDefs[block].getTextureIdx(Direction::WEST)
-                        );
-                    } else {
-                        addQuad(
-                            pos - glm::vec3(1, 0, 0), Direction::EAST,
-                            Block::blockDefs[chunk.getBlock({x - 1, y, z})].getTextureIdx(
-                                Direction::EAST
-                            )
-                        );
-                    }
-                }
-                if (prevY != (bool)block) {
-                    if (y == 0) {
-                        addQuad(
-                            pos, Direction::DOWN,
-                            Block::blockDefs[block].getTextureIdx(Direction::DOWN)
-                        );
-                    } else {
-                        addQuad(
-                            pos - glm::vec3(0, 1, 0), Direction::UP,
-                            Block::blockDefs[chunk.getBlock({x, y - 1, z})].getTextureIdx(
-                                Direction::UP
-                            )
-                        );
-                    }
-                }
-                if (prevZ != (bool)block) {
-                    if (z == 0) {
-                        addQuad(
-                            pos, Direction::NORTH,
-                            Block::blockDefs[block].getTextureIdx(Direction::NORTH)
-                        );
-                    } else {
-                        addQuad(
-                            pos - glm::vec3(0, 0, 1), Direction::SOUTH,
-                            Block::blockDefs[chunk.getBlock({x, y, z - 1})].getTextureIdx(
-                                Direction::SOUTH
-                            )
-                        );
-                    }
+                if (block && !prevXBlock) {
+                    addFace(pos, Direction::WEST, chunk);
+                } else if (!block && prevXBlock) {
+                    addFace(pos - glm::vec3(1, 0, 0), Direction::EAST, chunk);
                 }
 
+                if (block && !prevYBlock) {
+                    addFace(pos, Direction::DOWN, chunk);
+                } else if (!block && prevYBlock) {
+                    addFace(pos - glm::vec3(0, 1, 0), Direction::UP, chunk);
+                }
+
+                if (block && !prevZBlock) {
+                    addFace(pos, Direction::NORTH, chunk);
+                } else if (!block && prevZBlock) {
+                    addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH, chunk);
+                }
+
+                // Faces on east, up, and south edge of chunk
                 if (x == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(
-                        pos, Direction::EAST,
-                        Block::blockDefs[block].getTextureIdx(Direction::EAST)
-                    );
+                    addFace(pos, Direction::EAST, chunk);
                 }
                 if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
-                    addQuad(
-                        pos, Direction::UP,
-                        Block::blockDefs[block].getTextureIdx(Direction::UP)
-                    );
+                    addFace(pos, Direction::UP, chunk);
                 }
                 if (z == Chunk::CHUNK_SIZE - 1 && block) {
-                    addQuad(
-                        pos, Direction::SOUTH,
-                        Block::blockDefs[block].getTextureIdx(Direction::SOUTH)
-                    );
+                    addFace(pos, Direction::SOUTH, chunk);
                 }
-
-                i++;
             }
         }
     }
 
-    std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize / 1024
-              << " kb\n";
+    // std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize / 1024
+    //           << " kb\n";
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -194,6 +155,12 @@ ChunkMesh::ChunkMesh(const Chunk& chunk) {
     // }
 }
 
+void ChunkMesh::addFace(
+    const glm::vec3& pos, utils::Direction facing, const Chunk& chunk
+) {
+    addQuad(pos, facing, Block::blockDefs[chunk.getBlock(pos)].getTextureIdx(facing));
+}
+
 void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     Vertex v1 = allCubeVertices[facing * 4 + 0];
     Vertex v2 = allCubeVertices[facing * 4 + 1];
@@ -215,6 +182,11 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v1);
     triangleVerts.push_back(v2);
     triangleVerts.push_back(v3);
+}
+
+ChunkMesh::ChunkMesh(const Chunk& chunk) {
+    createMeshBetter(chunk);
+    // createMeshOld(chunk);
 }
 
 void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex)

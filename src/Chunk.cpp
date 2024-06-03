@@ -35,20 +35,14 @@ glm::ivec2 Chunk::getChunkWorldIndex(glm::vec3 pos) {
     return glm::floor(glm::vec2(pos.x, pos.z) / (float)CHUNK_SIZE);
 }
 
+glm::ivec3 Chunk::getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos) {
+    return glm::ivec3(worldIndex.x, 0, worldIndex.y) * CHUNK_SIZE + chunkPos;
+}
+
 Chunk::Chunk() : data(CHUNK_ARRAY_SIZE) {
     int height = utils::getRandom<int>(150, 200);
     // std::cout << "Height: " << height << "\n";
     memset(data.data(), 0, CHUNK_ARRAY_SIZE);
-    memset(data.data(), 1, height * CHUNK_SIZE * CHUNK_SIZE);
-    for (int y = 0; y < 3; y++) {
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            for (int x = 0; x < CHUNK_SIZE; x++) {
-                BlockId b = y == 0 ? Block::GRASS : Block::DIRT;
-                glm::ivec3 pos(x, height - y, z);
-                setBlock(pos, b);
-            }
-        }
-    }
 }
 
 Chunk::~Chunk() {}

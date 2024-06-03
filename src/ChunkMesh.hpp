@@ -28,6 +28,10 @@ private:
     GLuint VAO;
     GLuint VBO;
 
+    void createMeshOld(const Chunk& chunk);
+    void createMeshBetter(const Chunk& chunk);
+
+    void addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk);
     void addQuad(const glm::vec3& pos, int facing, int textureIdx);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
 };

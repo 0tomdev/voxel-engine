@@ -183,14 +183,35 @@ int main() {
             ImGui::DragFloat("Position z", &camera.position.z, 1, -100, 100);
             ImGui::Checkbox("Wireframe mode", &wireFrameMode);
 
-            ImGui::BeginChild("Chunk Info");
+            ImGui::SeparatorText("Chunk Data");
             glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(camera.position);
             ImGui::Text("World index: (%i, %i)", chunkIdx.x, chunkIdx.y);
+            ImGui::Text(
+                "Total chunk memory usage %i kb",
+                world.getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
+            );
             // ImGui::Text(
             //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
             // );
 
-            ImGui::EndChild();
+            ImGui::SeparatorText("World Editing");
+            static glm::ivec3 pos;
+            static int blockId;
+            ImGui::InputInt3("Block position", &pos.x);
+            ImGui::InputInt("Block ID", &blockId);
+            auto idx = glm::ivec2(0, 0);
+            if (ImGui::Button("Place Block")) {
+                auto it = world.chunks.find(idx);
+                if (it != world.chunks.end()) {
+                    it->second.setBlock(pos, Block::STONE_BRICKS);
+                }
+            }
+            if (ImGui::Button("Remesh")) {
+                auto it = world.chunks.find(idx);
+                if (it != world.chunks.end()) {
+                    world.chunkMeshes.at(idx) = ChunkMesh(it->second);
+                }
+            }
 
             ImGui::EndDisabled();
             ImGui::End();

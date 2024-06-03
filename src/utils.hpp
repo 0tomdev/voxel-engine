@@ -53,4 +53,11 @@ T getRandom(T min, T max) {
     }
 }
 
+// Thanks ChatGPT 😋
+template <typename T>
+T mapValue(T value, T inputMin, T inputMax, T outputMin, T outputMax) {
+    return outputMin +
+           (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+}
+
 } // namespace utils

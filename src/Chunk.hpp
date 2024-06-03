@@ -22,6 +22,7 @@ public:
     static void init();
 
     static glm::ivec2 getChunkWorldIndex(glm::vec3 pos);
+    static glm::ivec3 getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos);
 
     // const glm::ivec2 worldIndex;
     // BlockId* data;
