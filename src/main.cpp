@@ -149,6 +149,9 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
             world->player.position += camSpeedAdjusted * glm::vec3(0, -1, 0);
 
+        // Logic
+        world->update();
+
         // Rendering
         glClearColor(98 / 255.0f, 162 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -181,7 +184,7 @@ int main() {
             ImGui::SliderFloat("Movement speed", &cameraSpeed, 5.0f, 30.0f);
 
             ImGui::SeparatorText("Chunk Data");
-            glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(world->player.position);
+            glm::ivec2 chunkIdx = Chunk::getWorldIndex(world->player.position);
             ImGui::Text("World index: (%i, %i)", chunkIdx.x, chunkIdx.y);
             // ImGui::Text(
             //     "Total chunk memory usage %i kb",

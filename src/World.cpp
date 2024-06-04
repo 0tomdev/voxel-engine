@@ -3,22 +3,22 @@
 #include "World.hpp"
 
 World::World() {
-    for (int z = -renderDistance; z < renderDistance + 1; z++) {
-        for (int x = -renderDistance; x < renderDistance + 1; x++) {
-            auto idx = glm::ivec2(x, z);
-            generateChunk(idx);
-        }
-    }
+    // for (int z = -renderDistance; z < renderDistance + 1; z++) {
+    //     for (int x = -renderDistance; x < renderDistance + 1; x++) {
+    //         auto idx = glm::ivec2(x, z);
+    //         generateChunk(idx);
+    //     }
+    // }
 }
 
 BlockId World::getBlock(glm::ivec3 worldPos) const {
-    glm::ivec2 chunkWorldIdx = Chunk::getChunkWorldIndex(worldPos);
+    glm::ivec2 chunkWorldIdx = Chunk::getWorldIndex(worldPos);
     const Chunk& c = chunks.at(chunkWorldIdx);
     return c.getBlock(worldPos % Chunk::CHUNK_SIZE);
 }
 
 void World::setBlock(glm::ivec3 worldPos, BlockId block) {
-    glm::ivec2 chunkWorldIdx = Chunk::getChunkWorldIndex(worldPos);
+    glm::ivec2 chunkWorldIdx = Chunk::getWorldIndex(worldPos);
     Chunk& c = chunks.at(chunkWorldIdx);
     c.setBlock(worldPos % Chunk::CHUNK_SIZE, block);
 }
@@ -33,8 +33,25 @@ size_t World::getNumChunks() const {
     return chunks.size();
 }
 
-void World::generateChunk(glm::ivec2 worldIdx) {
+void World::update() {
+    // Generate and load chunks around player
+    glm::ivec2 worldIdx = Chunk::getWorldIndex(player.position);
+    for (int z = worldIdx.y - renderDistance; z < worldIdx.y + 1; z++) {
+        for (int x = worldIdx.x - renderDistance; x < worldIdx.x + 1; x++) {
+            auto idx = glm::ivec2(x, z);
+            if (generateChunk(idx)) {
+                std::cout << "Generated chunk (" << x << ", " << z << ")\n";
+            }
+        }
+    }
+}
+
+bool World::generateChunk(glm::ivec2 worldIdx) {
     Chunk chunk = Chunk();
+    auto [it, wasInserted] = chunks.insert({worldIdx, chunk});
+
+    if (!wasInserted) return false;
+
     for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
         for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
             auto worldPos = Chunk::getWorldPosition(worldIdx, glm::ivec3(x, 0, z));
@@ -46,15 +63,11 @@ void World::generateChunk(glm::ivec2 worldIdx) {
 
             for (int cy = 0; cy < intHeight; cy++) {
                 BlockId b = cy == intHeight - 1 ? Block::GRASS : Block::STONE;
-                chunk.setBlock({x, cy, z}, b);
+                it->second.setBlock({x, cy, z}, b);
             }
         }
     }
-    chunks[worldIdx] = chunk;
-    // if (worldIdx == glm::ivec2(0)) {
-    //     for (auto i : chunk.data)
-    //         std::cout << (int)i << " ";
-    //     std::cout << "\n";
-    // }
-    chunkMeshes.insert({worldIdx, ChunkMesh(chunk)});
+    chunkMeshes.insert({worldIdx, ChunkMesh(it->second)}); // temporary
+
+    return true;
 }

@@ -11,8 +11,8 @@
 #include "Chunk.hpp"
 #include "utils.hpp"
 
-glm::ivec2 Chunk::getChunkWorldIndex(glm::vec3 pos) {
-    return glm::floor(glm::vec2(pos.x, pos.z) / (float)CHUNK_SIZE);
+glm::ivec2 Chunk::getWorldIndex(glm::vec3 worldPos) {
+    return glm::floor(glm::vec2(worldPos.x, worldPos.z) / (float)CHUNK_SIZE);
 }
 
 glm::ivec3 Chunk::getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos) {
