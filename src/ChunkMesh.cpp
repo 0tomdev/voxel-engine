@@ -201,17 +201,15 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
 
 ChunkMesh::ChunkMesh(const Chunk& chunk) {
     createMeshBetter(chunk);
-    // createMeshOld(chunk);
 }
 
-// TODO: fix destructor being called too much (idk why this happens)
-ChunkMesh::~ChunkMesh() {
-    // glDeleteBuffers(1, &VBO);
-    // glDeleteVertexArrays(1, &VAO);
+void ChunkMesh::deleteBuffers() {
+    std::cout << "Deleted mesh from VRAM\n";
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const {
-
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection =
         glm::perspective(glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip);

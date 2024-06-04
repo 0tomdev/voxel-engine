@@ -25,9 +25,10 @@ bool firstMouse = true;
 int screenWidth = 1200;
 int screenHeight = 800;
 
-Camera camera;
+// Too big for stack :(
+std::unique_ptr<World> world;
 
-glm::vec2 mousePos = glm::vec2(screenWidth, screenHeight) / 2.0f;
+glm::vec2 mousePos = glm::ivec2(screenWidth, screenHeight) / 2;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -40,7 +41,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireFrameMode = !wireFrameMode;
     }
 }
-// test
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     // std::cout << xpos << " " << ypos << "\n";
@@ -53,7 +53,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     glm::vec2 offset = glm::vec2(xpos, ypos) - mousePos;
     offset.y *= -1; // reversed since y-coordinates range from bottom to top
 
-    camera.updateFromMouse(offset);
+    world->player.updateCameraFromMouse(offset);
 
     mousePos = glm::vec2(xpos, ypos);
 }
@@ -74,8 +74,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // for mac ig
 
-    GLFWwindow* window =
-        glfwCreateWindow(screenWidth, screenHeight, "OpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create OpenGL window\n";
         glfwTerminate();
@@ -107,7 +106,7 @@ int main() {
     ChunkMesh::init();
     Block::initBlocks();
 
-    World world;
+    world = std::make_unique<World>();
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -129,44 +128,45 @@ int main() {
         static float cameraSpeed = 15;
         const float camSpeedAdjusted = cameraSpeed * deltaTime;
 
-        glm::vec3 newCamFront = camera.getDirection();
+        Camera& cam = world->player.camera;
+
+        glm::vec3 newCamFront = cam.direction;
         newCamFront.y = 0;
         newCamFront = glm::normalize(newCamFront);
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera.position += camSpeedAdjusted * newCamFront;
+            world->player.position += camSpeedAdjusted * newCamFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.position -= camSpeedAdjusted * newCamFront;
+            world->player.position -= camSpeedAdjusted * newCamFront;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            camera.position -= glm::normalize(glm::cross(newCamFront, camera.getUp())) *
-                               camSpeedAdjusted;
+            world->player.position -=
+                glm::normalize(glm::cross(newCamFront, cam.getUp())) * camSpeedAdjusted;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            camera.position += glm::normalize(glm::cross(newCamFront, camera.getUp())) *
-                               camSpeedAdjusted;
+            world->player.position +=
+                glm::normalize(glm::cross(newCamFront, cam.getUp())) * camSpeedAdjusted;
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            camera.position += camSpeedAdjusted * glm::vec3(0, 1, 0);
+            world->player.position += camSpeedAdjusted * glm::vec3(0, 1, 0);
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            camera.position += camSpeedAdjusted * glm::vec3(0, -1, 0);
+            world->player.position += camSpeedAdjusted * glm::vec3(0, -1, 0);
 
         // Rendering
         glClearColor(98 / 255.0f, 162 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glPolygonMode(
-            GL_FRONT_AND_BACK, wireFrameMode ? GL_LINE : GL_FILL
-        ); // Wireframe mode
+        glPolygonMode(GL_FRONT_AND_BACK, wireFrameMode ? GL_LINE : GL_FILL); // Wireframe mode
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGuiIO& io = ImGui::GetIO();
 
-        camera.calculateDirection();
+        world->player.calculateCameraDirection();
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, texture.id);
-        world.render(camera, screenWidth / (float)screenHeight);
+        // cam.position = world->player.position;
+        world->render(cam, screenWidth / (float)screenHeight);
 
         {
             ImGui::Begin("Debug Info");
@@ -174,19 +174,19 @@ int main() {
             ImGui::BeginDisabled(mouseCaptured);
 
             ImGui::Text("FPS: %f", 60.0f / deltaTime);
-            ImGui::DragFloat("Position x", &camera.position.x, 1, -100, 100);
-            ImGui::DragFloat("Position y", &camera.position.y, 1, 0, 255);
-            ImGui::DragFloat("Position z", &camera.position.z, 1, -100, 100);
+            ImGui::DragFloat("Position x", &world->player.position.x, 1, -100, 100);
+            ImGui::DragFloat("Position y", &world->player.position.y, 1, 0, 255);
+            ImGui::DragFloat("Position z", &world->player.position.z, 1, -100, 100);
             ImGui::Checkbox("Wireframe mode", &wireFrameMode);
             ImGui::SliderFloat("Movement speed", &cameraSpeed, 5.0f, 30.0f);
 
             ImGui::SeparatorText("Chunk Data");
-            glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(camera.position);
+            glm::ivec2 chunkIdx = Chunk::getChunkWorldIndex(world->player.position);
             ImGui::Text("World index: (%i, %i)", chunkIdx.x, chunkIdx.y);
-            ImGui::Text(
-                "Total chunk memory usage %i kb",
-                world.getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
-            );
+            // ImGui::Text(
+            //     "Total chunk memory usage %i kb",
+            //     world.getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
+            // );
             // ImGui::Text(
             //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
             // );

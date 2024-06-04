@@ -1,6 +1,6 @@
 # Compilier options
 CC := clang++
-CFLAGS := -std=c++20
+CFLAGS := -std=c++20 -Wall
 
 BUILD_DIR := build
 SRC_DIR := src

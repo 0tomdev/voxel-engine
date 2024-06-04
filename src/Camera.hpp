@@ -6,9 +6,12 @@
 
 #include "Chunk.hpp"
 
-class Camera {
+struct Camera {
 public:
+    const glm::vec3 up = glm::vec3(0, 1, 0);
     glm::vec3 position = glm::vec3(6, Chunk::CHUNK_HEIGHT, 6);
+    glm::vec3 direction;
+
     float fov = 60.0f;
     float nearClip = 0.1f;
     float farClip = 256.0f;
@@ -19,13 +22,4 @@ public:
     const glm::vec3& getUp();
 
     glm::mat4 getViewMatrix() const;
-    void updateFromMouse(const glm::vec2& mouseOffset);
-    void calculateDirection();
-
-private:
-    float pitch = -89;
-    float yaw = 0;
-    float sensitivity = 0.1;
-    const glm::vec3 up = glm::vec3(0, 1, 0);
-    glm::vec3 direction;
 };

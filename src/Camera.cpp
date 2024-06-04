@@ -14,24 +14,6 @@ glm::mat4 Camera::getViewMatrix() const {
     return view;
 }
 
-void Camera::calculateDirection() {
-    // https://stackoverflow.com/questions/30011741/3d-vector-defined-by-2-angles
-    float hAnngle = glm::radians(yaw);
-    float vAngle = glm::radians(pitch);
-    direction.x = cos(hAnngle) * cos(vAngle);
-    direction.z = sin(hAnngle) * cos(vAngle);
-    direction.y = sin(vAngle);
-
-    direction = glm::normalize(direction);
-}
-
-void Camera::updateFromMouse(const glm::vec2& mouseOffset) {
-    yaw += mouseOffset.x * sensitivity;
-    pitch += mouseOffset.y * sensitivity;
-    pitch = glm::clamp(pitch, -89.9f, 89.9f);
-    // std::cout << mouseOffset.y << " " << pitch << " " << yaw << "\n";
-}
-
 const glm::vec3& Camera::getDirection() {
     return direction;
 }

@@ -3,9 +3,8 @@
 #include "World.hpp"
 
 World::World() {
-    int dist = 2;
-    for (int z = -dist; z < dist + 1; z++) {
-        for (int x = -dist; x < dist + 1; x++) {
+    for (int z = -renderDistance; z < renderDistance + 1; z++) {
+        for (int x = -renderDistance; x < renderDistance + 1; x++) {
             auto idx = glm::ivec2(x, z);
             generateChunk(idx);
         }

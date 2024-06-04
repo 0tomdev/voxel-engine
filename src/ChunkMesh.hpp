@@ -19,12 +19,12 @@ public:
     static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
 
     ChunkMesh(const Chunk& chunk);
-    ~ChunkMesh();
 
     static void init();
 
     void render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const;
     size_t getSize() const;
+    void deleteBuffers(); // Can't be put in destructor :(
 
 private:
     std::vector<Vertex> triangleVerts; // Does not use EBO

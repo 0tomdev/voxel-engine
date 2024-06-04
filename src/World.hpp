@@ -1,16 +1,19 @@
-#include "Chunk.hpp"
-#include "ChunkMesh.hpp"
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
+
+#include "Chunk.hpp"
+#include "ChunkMesh.hpp"
+#include "Player.hpp"
 
 class World {
 public:
     std::unordered_map<glm::ivec2, Chunk> chunks;
-    /** Things are going to get messed up if the meshes are being copied around bc of the VBOs and
-     * EBOs. Also you can't use operator[] bc there's no default constructor
-     */
+    // You can't use operator[] bc there's no default constructor for Chunk
     std::unordered_map<glm::ivec2, ChunkMesh> chunkMeshes;
+
+    int renderDistance = 2;
+
+    Player player;
 
     World();
 
