@@ -148,17 +148,14 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk) {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(
-        GL_ARRAY_BUFFER, triangleVerts.size() * vertexSize, &triangleVerts[0],
-        GL_STATIC_DRAW
+        GL_ARRAY_BUFFER, triangleVerts.size() * vertexSize, &triangleVerts[0], GL_STATIC_DRAW
     );
 
     // xyz coords
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
     glEnableVertexAttribArray(0);
     // uv coords
-    glVertexAttribPointer(
-        1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u))
-    );
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
     glEnableVertexAttribArray(1);
     // Normal
     glVertexAttribPointer(
@@ -175,9 +172,7 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk) {
     // }
 }
 
-void ChunkMesh::addFace(
-    const glm::vec3& pos, utils::Direction facing, const Chunk& chunk
-) {
+void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk) {
     addQuad(pos, facing, Block::blockDefs[chunk.getBlock(pos)].getTextureIdx(facing));
 }
 
@@ -209,22 +204,20 @@ ChunkMesh::ChunkMesh(const Chunk& chunk) {
     // createMeshOld(chunk);
 }
 
+// TODO: fix destructor being called too much (idk why this happens)
 ChunkMesh::~ChunkMesh() {
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    // glDeleteBuffers(1, &VBO);
+    // glDeleteVertexArrays(1, &VAO);
 }
 
-void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex)
-    const {
+void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const {
 
     glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip
-    );
+    glm::mat4 projection =
+        glm::perspective(glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip);
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(
-        model, glm::vec3(worldIndex.x, 0, worldIndex.y) * (float)Chunk::CHUNK_SIZE
-    );
+    model =
+        glm::translate(model, glm::vec3(worldIndex.x, 0, worldIndex.y) * (float)Chunk::CHUNK_SIZE);
 
     // Shader
     const Shader& shaderValue = shader.value();
