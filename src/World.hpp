@@ -9,9 +9,8 @@ class World {
 public:
     std::unordered_map<glm::ivec2, Chunk> chunks;
     // You can't use operator[] bc there's no default constructor for Chunk
-    std::unordered_map<glm::ivec2, ChunkMesh> chunkMeshes;
 
-    int renderDistance = 5;
+    int renderDistance = 6;
 
     Player player;
 

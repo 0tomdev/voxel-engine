@@ -7,12 +7,22 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#define DEBUG 1
+
 // #define GL_CALL(x)                                                                       \
 //     clearGlErrors();                                                                     \
 //     x;                                                                                   \
 //     printGlErrors(#x)
 
 #define GL_CALL(x) x
+
+#if DEBUG == 1
+#define SCOPE_TIMER(x) utils::ScopeTimer x
+#define LOG(x) std::cout << x << "\n"
+#else
+#define SCOPE_TIMER(x)
+#define LOG(x)
+#endif
 
 void clearGlErrors();
 void printGlErrors(const char* function);
@@ -35,7 +45,6 @@ public:
     ~ScopeTimer();
 
 private:
-    const char* message;
     std::chrono::time_point<std::chrono::steady_clock> start;
 };
 
@@ -56,8 +65,7 @@ T getRandom(T min, T max) {
 // Thanks ChatGPT 😋
 template <typename T>
 T mapValue(T value, T inputMin, T inputMax, T outputMin, T outputMax) {
-    return outputMin +
-           (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+    return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 
 } // namespace utils

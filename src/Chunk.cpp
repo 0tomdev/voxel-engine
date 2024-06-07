@@ -20,8 +20,6 @@ glm::ivec3 Chunk::getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos) {
 }
 
 Chunk::Chunk() : data(CHUNK_ARRAY_SIZE) {
-    int height = utils::getRandom<int>(150, 200);
-    // std::cout << "Height: " << height << "\n";
     memset(data.data(), 0, CHUNK_ARRAY_SIZE);
 }
 

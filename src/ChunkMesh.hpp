@@ -3,22 +3,35 @@
 #include "Chunk.hpp"
 #include "Camera.hpp"
 
+class Chunk;
+
 class ChunkMesh {
 public:
     struct Vertex {
+        // 3x int 0-16 (5 bits)
         glm::vec3 pos;
+
+        // 2x int 0-1 (1 bit)
         float u, v;
-        // Normals can only have 6 possible states because we are using cubes
+
+        // int 0-5 (3 bits)
         unsigned int normal;
+
+        // int 0-255 (8 bits)
         int textureIdx;
+
+        // Total size: 28 bits packed inside 32 bit integer
 
         Vertex(float x, float y, float z, float u, float v, unsigned int normal)
             : pos(x, y, z), u(u), v(v), normal(normal) {}
+
+        uint32_t pack() const;
     };
 
     static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
 
     ChunkMesh(const Chunk& chunk);
+    ~ChunkMesh();
 
     static void init();
 

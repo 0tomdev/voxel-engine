@@ -163,8 +163,6 @@ int main() {
         ImGui::NewFrame();
         ImGuiIO& io = ImGui::GetIO();
 
-        world->player.calculateCameraDirection();
-
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -176,7 +174,7 @@ int main() {
 
             ImGui::BeginDisabled(mouseCaptured);
 
-            ImGui::Text("FPS: %f", 60.0f / deltaTime);
+            ImGui::Text("FPS: %i", (int)(1.0f / deltaTime));
             ImGui::DragFloat("Position x", &world->player.position.x, 1, -100, 100);
             ImGui::DragFloat("Position y", &world->player.position.y, 1, 0, 255);
             ImGui::DragFloat("Position z", &world->player.position.z, 1, -100, 100);
@@ -186,10 +184,10 @@ int main() {
             ImGui::SeparatorText("Chunk Data");
             glm::ivec2 chunkIdx = Chunk::getWorldIndex(world->player.position);
             ImGui::Text("World index: (%i, %i)", chunkIdx.x, chunkIdx.y);
-            // ImGui::Text(
-            //     "Total chunk memory usage %i kb",
-            //     world.getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
-            // );
+            ImGui::Text(
+                "Total chunk memory usage %i kb",
+                world->getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
+            );
             // ImGui::Text(
             //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
             // );

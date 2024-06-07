@@ -87,7 +87,7 @@ void ChunkMesh::init() {
 
 void ChunkMesh::createMeshBetter(const Chunk& chunk) {
     assert(vertexSize == sizeof(Vertex));
-    utils::ScopeTimer timer;
+    // SCOPE_TIMER(timer);
 
     using Direction = utils::Direction;
 
@@ -201,6 +201,10 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
 
 ChunkMesh::ChunkMesh(const Chunk& chunk) {
     createMeshBetter(chunk);
+}
+
+ChunkMesh::~ChunkMesh() {
+    // LOG("Deleted mesh");
 }
 
 void ChunkMesh::deleteBuffers() {

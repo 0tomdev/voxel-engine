@@ -24,8 +24,9 @@ void World::setBlock(glm::ivec3 worldPos, BlockId block) {
 }
 
 void World::render(const Camera& camera, float aspectRatio) const {
-    for (auto it = chunkMeshes.begin(); it != chunkMeshes.end(); it++) {
-        it->second.render(camera, aspectRatio, it->first);
+    for (auto it = chunks.begin(); it != chunks.end(); it++) {
+        const Chunk& chunk = it->second;
+        if (chunk.mesh) chunk.mesh->render(camera, aspectRatio, it->first);
     }
 }
 
@@ -34,21 +35,34 @@ size_t World::getNumChunks() const {
 }
 
 void World::update() {
-    // Generate and load chunks around player
-    glm::ivec2 worldIdx = Chunk::getWorldIndex(player.position);
-    for (int z = worldIdx.y - renderDistance; z < worldIdx.y + 1; z++) {
-        for (int x = worldIdx.x - renderDistance; x < worldIdx.x + 1; x++) {
-            auto idx = glm::ivec2(x, z);
-            if (generateChunk(idx)) {
-                std::cout << "Generated chunk (" << x << ", " << z << ")\n";
+    player.update();
+    if (player.movedChunks() || chunks.empty()) {
+        glm::ivec2 worldIdx = Chunk::getWorldIndex(player.position);
+        for (auto it = chunks.begin(); it != chunks.end();) {
+            auto diff = glm::abs(it->first - worldIdx);
+            if (diff.x > renderDistance + 2 || diff.y > renderDistance + 2) {
+                it = chunks.erase(it);
+            } else {
+                it++;
+            }
+        }
+        for (int z = worldIdx.y - renderDistance; z < worldIdx.y + renderDistance + 1; z++) {
+            for (int x = worldIdx.x - renderDistance; x < worldIdx.x + renderDistance + 1; x++) {
+                auto idx = glm::ivec2(x, z);
+                // Optimize: the unordered_maps are slow
+                if (generateChunk(idx)) {
+                    // LOG("Generated chunk (" << x << ", " << z << ")");
+                }
             }
         }
     }
+    // Generate and load chunks around player
 }
 
 bool World::generateChunk(glm::ivec2 worldIdx) {
-    Chunk chunk = Chunk();
-    auto [it, wasInserted] = chunks.insert({worldIdx, chunk});
+    auto [it, wasInserted] = chunks.emplace(std::make_pair(worldIdx, Chunk()));
+
+    Chunk& chunk = it->second;
 
     if (!wasInserted) return false;
 
@@ -63,11 +77,11 @@ bool World::generateChunk(glm::ivec2 worldIdx) {
 
             for (int cy = 0; cy < intHeight; cy++) {
                 BlockId b = cy == intHeight - 1 ? Block::GRASS : Block::STONE;
-                it->second.setBlock({x, cy, z}, b);
+                chunk.setBlock({x, cy, z}, b);
             }
         }
     }
-    chunkMeshes.insert({worldIdx, ChunkMesh(it->second)}); // temporary
+    chunk.mesh = std::make_unique<ChunkMesh>(chunk);
 
     return true;
 }
