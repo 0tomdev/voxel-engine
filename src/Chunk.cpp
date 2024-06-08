@@ -19,7 +19,7 @@ glm::ivec3 Chunk::getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos) {
     return glm::ivec3(worldIndex.x, 0, worldIndex.y) * CHUNK_SIZE + chunkPos;
 }
 
-Chunk::Chunk() : data(CHUNK_ARRAY_SIZE) {
+Chunk::Chunk(glm::ivec2 _worldIndex) : data(CHUNK_ARRAY_SIZE), worldIndex(_worldIndex) {
     memset(data.data(), 0, CHUNK_ARRAY_SIZE);
 }
 

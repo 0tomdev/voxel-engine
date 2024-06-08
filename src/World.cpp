@@ -17,6 +17,12 @@ BlockId World::getBlock(glm::ivec3 worldPos) const {
     return c.getBlock(worldPos % Chunk::CHUNK_SIZE);
 }
 
+BlockId World::getBlockOrGenChunk(glm::ivec3 worldPos) {
+    glm::ivec2 chunkWorldIdx = Chunk::getWorldIndex(worldPos);
+    auto result = generateChunk(worldPos, false);
+    return result.first->second.getBlock(worldPos & Chunk::CHUNK_SIZE);
+}
+
 void World::setBlock(glm::ivec3 worldPos, BlockId block) {
     glm::ivec2 chunkWorldIdx = Chunk::getWorldIndex(worldPos);
     Chunk& c = chunks.at(chunkWorldIdx);
@@ -49,8 +55,8 @@ void World::update() {
         for (int z = worldIdx.y - renderDistance; z < worldIdx.y + renderDistance + 1; z++) {
             for (int x = worldIdx.x - renderDistance; x < worldIdx.x + renderDistance + 1; x++) {
                 auto idx = glm::ivec2(x, z);
-                // Optimize: the unordered_maps are slow
-                if (generateChunk(idx)) {
+                // Optimize: the unordered_maps are slow (kind of)
+                if (generateChunk(idx, true).second) {
                     // LOG("Generated chunk (" << x << ", " << z << ")");
                 }
             }
@@ -59,12 +65,19 @@ void World::update() {
     // Generate and load chunks around player
 }
 
-bool World::generateChunk(glm::ivec2 worldIdx) {
-    auto [it, wasInserted] = chunks.emplace(std::make_pair(worldIdx, Chunk()));
+std::pair<World::ChunkMapType::iterator, bool>
+World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
+    auto result = chunks.emplace(std::make_pair(worldIdx, Chunk(worldIdx)));
+    std::pair<ChunkMapType::iterator, bool> a = result;
+    auto it = result.first;
+    bool wasInserted = result.second;
 
     Chunk& chunk = it->second;
 
-    if (!wasInserted) return false;
+    if (!wasInserted) {
+        if (createMesh && !chunk.mesh) chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
+        return result;
+    }
 
     for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
         for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
@@ -81,7 +94,7 @@ bool World::generateChunk(glm::ivec2 worldIdx) {
             }
         }
     }
-    chunk.mesh = std::make_unique<ChunkMesh>(chunk);
+    if (createMesh) chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
 
-    return true;
+    return result;
 }

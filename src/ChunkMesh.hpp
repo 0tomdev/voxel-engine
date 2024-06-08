@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 
 class Chunk;
+class World;
 
 class ChunkMesh {
 public:
@@ -30,7 +31,7 @@ public:
 
     static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
 
-    ChunkMesh(const Chunk& chunk);
+    ChunkMesh(const Chunk& chunk, World& world);
     ~ChunkMesh();
 
     static void init();
@@ -44,7 +45,7 @@ private:
     GLuint VAO;
     GLuint VBO;
 
-    void createMeshBetter(const Chunk& chunk);
+    void createMeshBetter(const Chunk& chunk, World& world);
 
     void addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk);
     void addQuad(const glm::vec3& pos, int facing, int textureIdx);

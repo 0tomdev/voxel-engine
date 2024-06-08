@@ -8,6 +8,7 @@
 #include "ChunkMesh.hpp"
 #include "utils.hpp"
 #include "block/Block.hpp"
+#include "World.hpp"
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -85,9 +86,17 @@ void ChunkMesh::init() {
     opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
 }
 
-void ChunkMesh::createMeshBetter(const Chunk& chunk) {
+void ChunkMesh::createMeshBetter(const Chunk& chunk, World& world) {
     assert(vertexSize == sizeof(Vertex));
     // SCOPE_TIMER(timer);
+    const Chunk& left =
+        world.generateChunk(chunk.worldIndex + glm::ivec2(-1, 0), false).first->second;
+    const Chunk& right =
+        world.generateChunk(chunk.worldIndex + glm::ivec2(1, 0), false).first->second;
+    const Chunk& front =
+        world.generateChunk(chunk.worldIndex + glm::ivec2(0, 1), false).first->second;
+    const Chunk& back =
+        world.generateChunk(chunk.worldIndex + glm::ivec2(0, -1), false).first->second;
 
     using Direction = utils::Direction;
 
@@ -95,21 +104,24 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::vec3(x, y, z);
+                glm::ivec3 worldPos = Chunk::getWorldPosition(chunk.worldIndex, pos);
                 BlockId block = chunk.getBlock(pos);
 
                 BlockId prevXBlock = 0;
                 if (x > 0) prevXBlock = chunk.getBlock({x - 1, y, z});
+                else prevXBlock = left.getBlock({Chunk::CHUNK_SIZE - 1, y, z});
                 BlockId prevYBlock = 0;
                 if (y > 0) prevYBlock = chunk.getBlock({x, y - 1, z});
                 BlockId prevZBlock = 0;
                 if (z > 0) prevZBlock = chunk.getBlock({x, y, z - 1});
+                else prevZBlock = back.getBlock({x, y, Chunk::CHUNK_SIZE - 1});
 
                 // Faces only get added to the current block if they are facing west (1),
                 // down (3), or north (5)
 
                 if (block && !prevXBlock) {
                     addFace(pos, Direction::WEST, chunk);
-                } else if (!block && prevXBlock) {
+                } else if (!block && prevXBlock && x > 0) {
                     addFace(pos - glm::vec3(1, 0, 0), Direction::EAST, chunk);
                 }
 
@@ -121,18 +133,18 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk) {
 
                 if (block && !prevZBlock) {
                     addFace(pos, Direction::NORTH, chunk);
-                } else if (!block && prevZBlock) {
+                } else if (!block && prevZBlock && z > 0) {
                     addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH, chunk);
                 }
 
                 // Faces on east, up, and south edge of chunk
-                if (x == Chunk::CHUNK_SIZE - 1 && block) {
+                if (x == Chunk::CHUNK_SIZE - 1 && block && !right.getBlock({0, y, z})) {
                     addFace(pos, Direction::EAST, chunk);
                 }
                 if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
                     addFace(pos, Direction::UP, chunk);
                 }
-                if (z == Chunk::CHUNK_SIZE - 1 && block) {
+                if (z == Chunk::CHUNK_SIZE - 1 && block && !front.getBlock({x, y, 0})) {
                     addFace(pos, Direction::SOUTH, chunk);
                 }
             }
@@ -199,12 +211,14 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v3);
 }
 
-ChunkMesh::ChunkMesh(const Chunk& chunk) {
-    createMeshBetter(chunk);
+ChunkMesh::ChunkMesh(const Chunk& chunk, World& world) {
+    createMeshBetter(chunk, world);
 }
 
 ChunkMesh::~ChunkMesh() {
     // LOG("Deleted mesh");
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 void ChunkMesh::deleteBuffers() {
