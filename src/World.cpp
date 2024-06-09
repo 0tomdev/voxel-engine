@@ -95,7 +95,7 @@ World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
         return result;
     }
 
-    auto center = glm::vec3(-5, 150, 27);
+    auto center = glm::vec3(-5, 110, 27);
     float radius = 30;
 
     for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
