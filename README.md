@@ -1,6 +1,8 @@
 # Recreation of Minecraft
 
-# Todo
+![Bad graphics](images/early_terrain.png)
+
+## Todo
 
 - [x] Loading multiple chunks
 - [x] Different block types
