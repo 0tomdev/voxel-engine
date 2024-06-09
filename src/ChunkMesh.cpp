@@ -86,7 +86,7 @@ void ChunkMesh::init() {
     opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
 }
 
-void ChunkMesh::createMeshBetter(const Chunk& chunk, World& world) {
+void ChunkMesh::createMeshBetter(World& world) {
     assert(vertexSize == sizeof(Vertex));
     // SCOPE_TIMER(timer);
     const Chunk& left =
@@ -120,32 +120,32 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk, World& world) {
                 // down (3), or north (5)
 
                 if (block && !prevXBlock) {
-                    addFace(pos, Direction::WEST, chunk);
+                    addFace(pos, Direction::WEST);
                 } else if (!block && prevXBlock && x > 0) {
-                    addFace(pos - glm::vec3(1, 0, 0), Direction::EAST, chunk);
+                    addFace(pos - glm::vec3(1, 0, 0), Direction::EAST);
                 }
 
                 if (block && !prevYBlock) {
-                    addFace(pos, Direction::DOWN, chunk);
+                    addFace(pos, Direction::DOWN);
                 } else if (!block && prevYBlock) {
-                    addFace(pos - glm::vec3(0, 1, 0), Direction::UP, chunk);
+                    addFace(pos - glm::vec3(0, 1, 0), Direction::UP);
                 }
 
                 if (block && !prevZBlock) {
-                    addFace(pos, Direction::NORTH, chunk);
+                    addFace(pos, Direction::NORTH);
                 } else if (!block && prevZBlock && z > 0) {
-                    addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH, chunk);
+                    addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH);
                 }
 
                 // Faces on east, up, and south edge of chunk
                 if (x == Chunk::CHUNK_SIZE - 1 && block && !right.getBlock({0, y, z})) {
-                    addFace(pos, Direction::EAST, chunk);
+                    addFace(pos, Direction::EAST);
                 }
                 if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
-                    addFace(pos, Direction::UP, chunk);
+                    addFace(pos, Direction::UP);
                 }
                 if (z == Chunk::CHUNK_SIZE - 1 && block && !front.getBlock({x, y, 0})) {
-                    addFace(pos, Direction::SOUTH, chunk);
+                    addFace(pos, Direction::SOUTH);
                 }
             }
         }
@@ -184,7 +184,7 @@ void ChunkMesh::createMeshBetter(const Chunk& chunk, World& world) {
     // }
 }
 
-void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk) {
+void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing) {
     addQuad(pos, facing, Block::blockDefs[chunk.getBlock(pos)].getTextureIdx(facing));
 }
 
@@ -211,8 +211,8 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v3);
 }
 
-ChunkMesh::ChunkMesh(const Chunk& chunk, World& world) {
-    createMeshBetter(chunk, world);
+ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk) {
+    createMeshBetter(world);
 }
 
 ChunkMesh::~ChunkMesh() {
@@ -227,13 +227,14 @@ void ChunkMesh::deleteBuffers() {
     glDeleteVertexArrays(1, &VAO);
 }
 
-void ChunkMesh::render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const {
+void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection =
         glm::perspective(glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip);
     glm::mat4 model = glm::mat4(1.0f);
-    model =
-        glm::translate(model, glm::vec3(worldIndex.x, 0, worldIndex.y) * (float)Chunk::CHUNK_SIZE);
+    model = glm::translate(
+        model, glm::vec3(chunk.worldIndex.x, 0, chunk.worldIndex.y) * (float)Chunk::CHUNK_SIZE
+    );
 
     // Shader
     const Shader& shaderValue = shader.value();

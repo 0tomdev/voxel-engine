@@ -31,13 +31,11 @@ ivec2 getAtlasPos(int idx) {
  (0,0)----- +v
 */
 
-void main()
-{
+void main() {
     vec2 atlasPos = getAtlasPos(textureIdx);
     // vec2 atlasPos = vec2(2, 15);
 
     vec2 newTexCoord = (TexCoord + atlasPos) / atlasSize;
-    vec4 color = texture(ourTexture, newTexCoord) + vec4(vertColor, 0) * 0.0;
-    FragColor = vec4(color.xyz, 1);
-    // FragColor = vec4(vertColor.xyz, 1);
+    vec4 color = texture(ourTexture, newTexCoord);
+    FragColor = color;
 }

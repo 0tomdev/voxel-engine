@@ -36,7 +36,7 @@ public:
 
     static void init();
 
-    void render(const Camera& camera, float aspectRatio, glm::ivec2 worldIndex) const;
+    void render(const Camera& camera, float aspectRatio) const;
     size_t getSize() const;
     void deleteBuffers(); // Can't be put in destructor :(
 
@@ -44,10 +44,11 @@ private:
     std::vector<Vertex> triangleVerts; // Does not use EBO
     GLuint VAO;
     GLuint VBO;
+    const Chunk& chunk;
 
-    void createMeshBetter(const Chunk& chunk, World& world);
+    void createMeshBetter(World& world);
 
-    void addFace(const glm::vec3& pos, utils::Direction facing, const Chunk& chunk);
+    void addFace(const glm::vec3& pos, utils::Direction facing);
     void addQuad(const glm::vec3& pos, int facing, int textureIdx);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
 };

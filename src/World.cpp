@@ -30,9 +30,24 @@ void World::setBlock(glm::ivec3 worldPos, BlockId block) {
 }
 
 void World::render(const Camera& camera, float aspectRatio) const {
+    std::vector<const Chunk*> chunksSorted(chunks.size());
+
+    int i = 0;
     for (auto it = chunks.begin(); it != chunks.end(); it++) {
-        const Chunk& chunk = it->second;
-        if (chunk.mesh) chunk.mesh->render(camera, aspectRatio, it->first);
+        chunksSorted[i] = &(it->second);
+        i++;
+    }
+
+    // Need to sort chunks by distance from player so that transparency works properly
+    glm::ivec2 playerWorldIdx = Chunk::getWorldIndex(player.position);
+    std::sort(chunksSorted.begin(), chunksSorted.end(), [&](const Chunk* a, const Chunk* b) {
+        glm::vec2 diffA = a->worldIndex - playerWorldIdx;
+        glm::vec2 diffB = b->worldIndex - playerWorldIdx;
+        return glm::dot(diffA, diffA) > glm::dot(diffB, diffB);
+    });
+
+    for (const Chunk* chunk : chunksSorted) {
+        if (chunk->mesh) chunk->mesh->render(camera, aspectRatio);
     }
 }
 
@@ -75,9 +90,13 @@ World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
     Chunk& chunk = it->second;
 
     if (!wasInserted) {
+        // This line can cause random segfaults btw
         if (createMesh && !chunk.mesh) chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
         return result;
     }
+
+    auto center = glm::vec3(-5, 150, 27);
+    float radius = 30;
 
     for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
         for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
@@ -88,9 +107,16 @@ World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
 
             int intHeight = height;
 
-            for (int cy = 0; cy < intHeight; cy++) {
-                BlockId b = cy == intHeight - 1 ? Block::GRASS : Block::STONE;
-                chunk.setBlock({x, cy, z}, b);
+            for (int cy = 0; cy < Chunk::CHUNK_HEIGHT; cy++) {
+                worldPos.y = cy;
+                if (cy < intHeight) {
+                    BlockId b = cy == intHeight - 1 ? Block::GRASS : Block::STONE;
+                    chunk.setBlock({x, cy, z}, b);
+                }
+                float dist = glm::distance(center, (glm::vec3)worldPos);
+                if (dist <= radius && dist >= radius - 1) {
+                    chunk.setBlock({x, cy, z}, Block::GLASS);
+                }
             }
         }
     }

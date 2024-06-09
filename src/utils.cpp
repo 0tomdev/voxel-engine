@@ -20,7 +20,7 @@ void printGlErrors(const char* function) {
 
 utils::Texture::Texture(const char* filePath) {
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(filePath, &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load(filePath, &width, &height, &nrChannels, STBI_rgb_alpha);
     std::cout << "Image loaded: " << width << " " << height << " " << nrChannels << "\n";
 
     unsigned int texture;
@@ -28,9 +28,7 @@ utils::Texture::Texture(const char* filePath) {
     glBindTexture(GL_TEXTURE_2D, texture);
     id = texture;
     if (data) {
-        glTexImage2D(
-            GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
-        );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture\n";

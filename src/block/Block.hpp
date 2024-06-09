@@ -18,6 +18,7 @@ enum Name : BlockId {
     STONE_BRICKS,
     DIRT,
     GRASS,
+    GLASS
 };
 
 struct BlockData {

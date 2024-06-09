@@ -30,6 +30,10 @@ void Block::initBlocks() {
     grass.topTextureIdx = 3;
     grass.sideTextureIdx = 4;
     blockDefs[GRASS] = grass;
+
+    BlockData glass;
+    glass.textureIdx = 12;
+    blockDefs[GLASS] = glass;
 }
 
 static void registerBlock(Block::Name blockId, Block::BlockData) {}
