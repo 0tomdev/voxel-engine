@@ -30,6 +30,7 @@ public:
     };
 
     static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
+    uint32_t generationTime;
 
     ChunkMesh(const Chunk& chunk, World& world);
     ~ChunkMesh();

@@ -13,6 +13,7 @@
 #include "utils.hpp"
 #include "ChunkMesh.hpp"
 #include "World.hpp"
+#include <Instrumentor.h>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -64,6 +65,9 @@ void resizeCallback(GLFWwindow* window, int newWidth, int newHeight) {
 }
 
 int main() {
+#if PROFILING
+    Instrumentor::Get().BeginSession("Profile");
+#endif
     // Initialize GLFW
     if (!glfwInit()) {
         std::cout << "Failed to initialize glfw\n";
@@ -120,6 +124,8 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 330");
 
     while (!glfwWindowShouldClose(window)) {
+        PROFILE_SCOPE("Main Loop");
+
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -188,9 +194,14 @@ int main() {
                 "Total chunk memory usage %i kb",
                 world->getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
             );
-            // ImGui::Text(
-            //     "Mesh size: %i kb", mesh.getSize() * ChunkMesh::vertexSize / 1024
-            // );
+
+            const ChunkMesh* mesh = world->chunks.at(chunkIdx).mesh.get();
+
+            if (mesh) {
+                ImGui::SeparatorText("Mesh Data");
+                ImGui::Text("Mesh size: %i kb", mesh->getSize() * ChunkMesh::vertexSize / 1024);
+                ImGui::Text("Generation time: %i ms", mesh->generationTime);
+            }
 
             // ImGui::SeparatorText("World Editing");
             // static glm::ivec3 pos;
@@ -228,5 +239,8 @@ int main() {
     ImGui::DestroyContext();
 
     glfwTerminate();
+#if PROFILING
+    Instrumentor::Get().EndSession();
+#endif
     return 0;
 }

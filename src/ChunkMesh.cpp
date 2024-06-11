@@ -9,6 +9,7 @@
 #include "utils.hpp"
 #include "block/Block.hpp"
 #include "World.hpp"
+#include <Instrumentor.h>
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -77,7 +78,7 @@ static unsigned int opacityLoc = -1;
  * Load shaders here because GL functions can only be called after glewInit()
  * */
 void ChunkMesh::init() {
-    shader = Shader("./assets/shaders/vertex.glsl", "./assets/shaders/frag.glsl");
+    shader = Shader("./assets/shaders/block.vert", "./assets/shaders/block.frag");
     const Shader& shaderValue = shader.value();
     vertexColorLocation = glGetUniformLocation(shaderValue.ID, "time");
     modelLoc = glGetUniformLocation(shaderValue.ID, "model");
@@ -88,6 +89,11 @@ void ChunkMesh::init() {
 
 void ChunkMesh::createMeshBetter(World& world) {
     assert(vertexSize == sizeof(Vertex));
+
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    PROFILE_FUNCTION();
+
     // SCOPE_TIMER(timer);
     const Chunk& left =
         world.generateChunk(chunk.worldIndex + glm::ivec2(-1, 0), false).first->second;
@@ -151,37 +157,42 @@ void ChunkMesh::createMeshBetter(World& world) {
         }
     }
 
+    auto endTime = std::chrono::high_resolution_clock::now();
+
+    generationTime =
+        std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
     // std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize / 1024
     //           << " kb\n";
 
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    {
+        PROFILE_SCOPE("Send Mesh Data");
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(
-        GL_ARRAY_BUFFER, triangleVerts.size() * vertexSize, &triangleVerts[0], GL_STATIC_DRAW
-    );
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
 
-    // xyz coords
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
-    glEnableVertexAttribArray(0);
-    // uv coords
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
-    glEnableVertexAttribArray(1);
-    // Normal
-    glVertexAttribPointer(
-        2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
-    );
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
-    );
-    glEnableVertexAttribArray(3);
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(
+            GL_ARRAY_BUFFER, triangleVerts.size() * vertexSize, &triangleVerts[0], GL_STATIC_DRAW
+        );
 
-    // for (auto& v : triangleVerts) {
-    //     std::cout << v.pos.x << ", " << v.pos.y << ", " << v.pos.z << "\n";
-    // }
+        // xyz coords
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
+        glEnableVertexAttribArray(0);
+        // uv coords
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
+        glEnableVertexAttribArray(1);
+        // Normal
+        glVertexAttribPointer(
+            2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
+        );
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(
+            3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
+        );
+        glEnableVertexAttribArray(3);
+    }
 }
 
 void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing) {
