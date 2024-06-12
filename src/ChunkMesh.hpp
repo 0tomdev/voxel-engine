@@ -39,7 +39,6 @@ public:
 
     void render(const Camera& camera, float aspectRatio) const;
     size_t getSize() const;
-    void deleteBuffers(); // Can't be put in destructor :(
 
 private:
     std::vector<Vertex> triangleVerts; // Does not use EBO

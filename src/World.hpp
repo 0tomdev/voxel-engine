@@ -4,13 +4,16 @@
 #include "Chunk.hpp"
 #include "ChunkMesh.hpp"
 #include "Player.hpp"
+#include "WorldGenerator.hpp"
+
+class WorldGenerator;
 
 class World {
 public:
     using ChunkMapType = std::unordered_map<glm::ivec2, Chunk>;
     ChunkMapType chunks;
 
-    int renderDistance = 6;
+    int renderDistance = 15;
 
     Player player;
 
@@ -22,9 +25,9 @@ public:
     void render(const Camera& camera, float aspectRatio) const;
     size_t getNumChunks() const;
     void update();
-
-    // private:
-    // Generates terrain for a chunk (does not create mesh)
     std::pair<World::ChunkMapType::iterator, bool>
     generateChunk(glm::ivec2 worldIdx, bool createMesh);
+
+private:
+    WorldGenerator worldGen;
 };

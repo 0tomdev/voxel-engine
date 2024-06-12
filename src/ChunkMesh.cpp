@@ -162,9 +162,6 @@ void ChunkMesh::createMeshBetter(World& world) {
     generationTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 
-    // std::cout << "Size of chunk mesh: " << triangleVerts.size() * vertexSize / 1024
-    //           << " kb\n";
-
     {
         PROFILE_SCOPE("Send Mesh Data");
 
@@ -228,12 +225,6 @@ ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk) {
 
 ChunkMesh::~ChunkMesh() {
     // LOG("Deleted mesh");
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
-}
-
-void ChunkMesh::deleteBuffers() {
-    std::cout << "Deleted mesh from VRAM\n";
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
 }

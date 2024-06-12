@@ -1,5 +1,3 @@
-#include <glm/gtc/noise.hpp>
-
 #include "World.hpp"
 #include <Instrumentor.h>
 
@@ -111,31 +109,9 @@ World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
         return result;
     }
 
-    auto center = glm::vec3(-5, 110, 27);
-    float radius = 30;
+    // gen terrain
+    worldGen.generateTerrain(chunk);
 
-    for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
-        for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
-            auto worldPos = Chunk::getWorldPosition(worldIdx, glm::ivec3(x, 0, z));
-
-            float height = glm::perlin(glm::vec2(worldPos.x, worldPos.z) / 32.0f);
-            height = utils::mapValue(height, -1.0f, 1.0f, 80.0f, 100.0f);
-
-            int intHeight = height;
-
-            for (int cy = 0; cy < Chunk::CHUNK_HEIGHT; cy++) {
-                worldPos.y = cy;
-                if (cy < intHeight) {
-                    BlockId b = cy == intHeight - 1 ? Block::GRASS : Block::STONE;
-                    chunk.setBlock({x, cy, z}, b);
-                }
-                float dist = glm::distance(center, (glm::vec3)worldPos);
-                if (dist <= radius && dist >= radius - 1) {
-                    chunk.setBlock({x, cy, z}, Block::GLASS);
-                }
-            }
-        }
-    }
     if (createMesh) chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
 
     return result;

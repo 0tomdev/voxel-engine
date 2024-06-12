@@ -2,9 +2,9 @@
 
 out vec4 FragColor;
 
-in vec2 TexCoord;
-in vec3 vertColor;
-flat in int textureIdx;
+in vec2 bTexCoord;
+in vec3 bVertColor;
+flat in int bTextureIdx;
 
 uniform sampler2D ourTexture;
 uniform float opacity;
@@ -32,10 +32,10 @@ ivec2 getAtlasPos(int idx) {
 */
 
 void main() {
-    vec2 atlasPos = getAtlasPos(textureIdx);
+    vec2 atlasPos = getAtlasPos(bTextureIdx);
     // vec2 atlasPos = vec2(2, 15);
 
-    vec2 newTexCoord = (TexCoord + atlasPos) / atlasSize;
+    vec2 newTexCoord = (bTexCoord + atlasPos) / atlasSize;
     vec4 color = texture(ourTexture, newTexCoord);
     FragColor = color;
 }

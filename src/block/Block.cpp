@@ -33,7 +33,25 @@ void Block::initBlocks() {
 
     BlockData glass;
     glass.textureIdx = 12;
+    glass.isTransparent = true;
     blockDefs[GLASS] = glass;
+
+    BlockData log;
+    log.textureIdx = 9;
+    blockDefs[LOG] = log;
+
+    BlockData leaves;
+    leaves.textureIdx = 13;
+    leaves.isTransparent = true;
+    blockDefs[LEAVES] = leaves;
+
+    BlockData clay;
+    clay.textureIdx = 8;
+    blockDefs[CLAY] = clay;
+}
+
+bool Block::isAirOrTransparent(BlockId block) {
+    return !block || blockDefs[block].isTransparent;
 }
 
 static void registerBlock(Block::Name blockId, Block::BlockData) {}
