@@ -177,18 +177,28 @@ void ChunkMesh::createMeshBetter(World& world) {
         // xyz coords
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
         glEnableVertexAttribArray(0);
+
         // uv coords
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
         glEnableVertexAttribArray(1);
+
         // Normal
         glVertexAttribPointer(
             2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
         );
         glEnableVertexAttribArray(2);
+
+        // Texture index
         glVertexAttribPointer(
             3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
         );
         glEnableVertexAttribArray(3);
+
+        // AO value
+        glVertexAttribPointer(
+            4, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, aoValue))
+        );
+        glEnableVertexAttribArray(4);
     }
 }
 
@@ -201,6 +211,10 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     Vertex v2 = allCubeVertices[facing * 4 + 1];
     Vertex v3 = allCubeVertices[facing * 4 + 2];
     Vertex v4 = allCubeVertices[facing * 4 + 3];
+
+    std::vector<Vertex*> verts = {&v1, &v2, &v3, &v4};
+    calculateAO(verts, (utils::Direction)facing, pos);
+
     v1.pos += pos;
     v2.pos += pos;
     v3.pos += pos;
@@ -209,6 +223,12 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     v2.textureIdx = textureIdx;
     v3.textureIdx = textureIdx;
     v4.textureIdx = textureIdx;
+
+    // v1.aoValue = 0;
+    // v2.aoValue = 0;
+    // v3.aoValue = 0;
+    // v4.aoValue = 0;
+
     addTriangle(v1, v3, v2);
     addTriangle(v3, v4, v2);
 }
@@ -217,6 +237,55 @@ void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
     triangleVerts.push_back(v1);
     triangleVerts.push_back(v2);
     triangleVerts.push_back(v3);
+}
+
+void ChunkMesh::calculateAO(
+    std::vector<Vertex*>& verts, utils::Direction facing, const glm::ivec3& pos
+) const {
+    using Direction = utils::Direction;
+
+    for (auto v : verts) {
+        int x, y, z;
+        glm::ivec3 s1Pos, s2Pos, cPos;
+
+        if (facing == Direction::UP || facing == Direction::DOWN) {
+            x = v->pos.x == 0 ? -1 : 1;
+            y = facing == Direction::UP ? 1 : -1;
+            z = v->pos.z == 0 ? -1 : 1;
+
+            s1Pos = (glm::ivec3)pos + glm::ivec3(x, y, 0);
+            s2Pos = (glm::ivec3)pos + glm::ivec3(0, y, z);
+            cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
+
+        } else if (facing == Direction::EAST || facing == Direction::WEST) {
+            x = facing == Direction::EAST ? 1 : -1;
+            y = v->pos.y == 0 ? -1 : 1;
+            z = v->pos.z == 0 ? -1 : 1;
+
+            s1Pos = (glm::ivec3)pos + glm::ivec3(x, y, 0);
+            s2Pos = (glm::ivec3)pos + glm::ivec3(x, 0, z);
+            cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
+
+        } else if (facing == Direction::SOUTH || facing == Direction::NORTH) {
+            x = v->pos.x == 0 ? -1 : 1;
+            y = v->pos.y == 0 ? -1 : 1;
+            z = facing == Direction::SOUTH ? 1 : -1;
+
+            s1Pos = (glm::ivec3)pos + glm::ivec3(x, 0, z);
+            s2Pos = (glm::ivec3)pos + glm::ivec3(0, y, z);
+            cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
+        }
+
+        int side1 = Chunk::inBounds(s1Pos) && chunk.getBlock(s1Pos) ? 1 : 0;
+        int side2 = Chunk::inBounds(s2Pos) && chunk.getBlock(s2Pos) ? 1 : 0;
+        int corner = Chunk::inBounds(cPos) && chunk.getBlock(cPos) ? 1 : 0;
+
+        if (side1 && side2) {
+            v->aoValue = 0;
+        } else {
+            v->aoValue = 3 - (side1 + side2 + corner);
+        }
+    }
 }
 
 ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk) {

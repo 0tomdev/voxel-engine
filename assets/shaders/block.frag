@@ -37,5 +37,5 @@ void main() {
 
     vec2 newTexCoord = (bTexCoord + atlasPos) / atlasSize;
     vec4 color = texture(ourTexture, newTexCoord);
-    FragColor = color;
+    FragColor = vec4(color.xyz * bVertColor, color.w);
 }

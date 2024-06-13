@@ -18,6 +18,9 @@ public:
         // int 0-5 (3 bits)
         unsigned int normal;
 
+        // 0-3 (0 is most dark and 3 is least dark)
+        unsigned int aoValue = 3;
+
         // int 0-255 (8 bits)
         int textureIdx;
 
@@ -29,7 +32,7 @@ public:
         uint32_t pack() const;
     };
 
-    static const size_t vertexSize = 5 * sizeof(float) + 2 * sizeof(unsigned int);
+    static const size_t vertexSize = 5 * sizeof(float) + 3 * sizeof(unsigned int);
     uint32_t generationTime;
 
     ChunkMesh(const Chunk& chunk, World& world);
@@ -47,8 +50,9 @@ private:
     const Chunk& chunk;
 
     void createMeshBetter(World& world);
-
     void addFace(const glm::vec3& pos, utils::Direction facing);
     void addQuad(const glm::vec3& pos, int facing, int textureIdx);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
+    void
+    calculateAO(std::vector<Vertex*>& verts, utils::Direction facing, const glm::ivec3& pos) const;
 };
