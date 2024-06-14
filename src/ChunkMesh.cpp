@@ -262,21 +262,23 @@ void ChunkMesh::calculateAO(
             cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
         }
 
-        // int side1 = Chunk::inBounds(s1Pos) && chunk.getBlock(s1Pos) ? 1 : 0;
-        int side1 = s1Pos.y >= 0 && s1Pos.y < Chunk::CHUNK_HEIGHT &&
-                            !Block::isAirOrTransparent(nearChunks.getBlock(s1Pos))
-                        ? 1
-                        : 0;
-        // int side2 = Chunk::inBounds(s2Pos) && chunk.getBlock(s2Pos) ? 1 : 0;
-        int side2 = s2Pos.y >= 0 && s2Pos.y < Chunk::CHUNK_HEIGHT &&
-                            !Block::isAirOrTransparent(nearChunks.getBlock(s2Pos))
-                        ? 1
-                        : 0;
-        // int corner = Chunk::inBounds(cPos) && chunk.getBlock(cPos) ? 1 : 0;
-        int corner = cPos.y >= 0 && cPos.y < Chunk::CHUNK_HEIGHT &&
-                             !Block::isAirOrTransparent(nearChunks.getBlock(cPos))
-                         ? 1
-                         : 0;
+        // int side1 = !Block::isAirOrTransparent(nearChunks.getBlock(s1Pos)) ? 1 : 0;
+        // int side2 = !Block::isAirOrTransparent(nearChunks.getBlock(s2Pos)) ? 1 : 0;
+        // int corner = !Block::isAirOrTransparent(nearChunks.getBlock(cPos)) ? 1 : 0;
+
+        // somethin doesnt look right here (nvm)
+        int side1 = 0;
+        if (s1Pos.y >= 0 && s1Pos.y < Chunk::CHUNK_HEIGHT) {
+            if (Block::blockDefs[nearChunks.getBlock(s1Pos)].causesAO) side1 = 1;
+        }
+        int side2 = 0;
+        if (s2Pos.y >= 0 && s2Pos.y < Chunk::CHUNK_HEIGHT) {
+            if (Block::blockDefs[nearChunks.getBlock(s2Pos)].causesAO) side2 = 1;
+        }
+        int corner = 0;
+        if (cPos.y >= 0 && cPos.y < Chunk::CHUNK_HEIGHT) {
+            if (Block::blockDefs[nearChunks.getBlock(cPos)].causesAO) corner = 1;
+        }
 
         if (side1 && side2) {
             v->aoValue = 0;

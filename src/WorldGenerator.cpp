@@ -33,13 +33,13 @@ void WorldGenerator::generateTerrain(Chunk& chunk) {
                         b = Block::STONE;
                     }
                 } else {
-                    b = Block::GLASS;
+                    b = Block::WATER;
                 }
                 chunk.setBlock({x, y, z}, b);
             }
 
             // Trees!
-            if (num < 0.005f) {
+            if (num < 0.005f && intHeight >= waterLevel) {
                 const int treeHeight = 4;
                 for (int i = 0; i < treeHeight + 1; i++) {
                     chunk.setBlock({x, intHeight + i, z}, Block::LOG);
@@ -56,7 +56,7 @@ void WorldGenerator::generateTerrain(Chunk& chunk) {
                             if (offset.y >= 0 && abs(offset.x) + abs(offset.z) > 1) continue;
                             if (offset.y == -1 && abs(offset.x) + abs(offset.z) == 4) continue;
 
-                            chunk.setBlock(pos, Block::CLAY);
+                            chunk.setBlock(pos, Block::LEAVES);
                         }
                     }
                 }

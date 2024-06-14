@@ -30,6 +30,7 @@ struct BlockData {
     // std::function<int(utils::Direction)> getTextureIdx = nullptr;
     int textureIdx = 255;
     bool isTransparent = false;
+    bool causesAO = true;
 
     std::optional<int> sideTextureIdx;
     std::optional<int> topTextureIdx;

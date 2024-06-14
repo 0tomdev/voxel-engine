@@ -40,6 +40,7 @@ int Chunk::getIndex(glm::ivec3 pos) const {
 }
 
 BlockId Chunk::getBlock(glm::ivec3 pos) const {
+    if (pos.y < 0 || pos.y >= CHUNK_HEIGHT) return Block::AIR;
     int idx = getIndex(pos);
     assert(idx >= 0 && idx < CHUNK_ARRAY_SIZE);
     return data[idx];

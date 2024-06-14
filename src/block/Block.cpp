@@ -13,6 +13,8 @@ int Block::BlockData::getTextureIdx(utils::Direction dir) const {
 Block::BlockData::BlockData() {}
 
 void Block::initBlocks() {
+    blockDefs[AIR].causesAO = false;
+
     BlockData stone;
     stone.textureIdx = 0;
     blockDefs[STONE] = stone;
@@ -34,6 +36,7 @@ void Block::initBlocks() {
     BlockData glass;
     glass.textureIdx = 12;
     glass.isTransparent = true;
+    glass.causesAO = false;
     blockDefs[GLASS] = glass;
 
     BlockData log;
@@ -56,6 +59,7 @@ void Block::initBlocks() {
     BlockData water;
     water.textureIdx = 16;
     water.isTransparent = true;
+    water.causesAO = false;
     blockDefs[WATER] = water;
 }
 
