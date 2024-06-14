@@ -37,7 +37,9 @@ void main() {
 
     bTexCoord = aTexCoord;
 
-    bVertColor = vec3(map(3 - aOcclusionValue, 0, 3, 1, 0.5));
+    // This is between 0 and 1. Lower value means darker AO.
+    float aoMinMultipler = 0.5;
+    bVertColor = vec3(map(aOcclusionValue, 0, 3, aoMinMultipler, 1));
 
     bTextureIdx = aTexIdx;
 }

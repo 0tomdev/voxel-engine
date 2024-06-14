@@ -95,14 +95,6 @@ void ChunkMesh::createMeshBetter(World& world) {
     PROFILE_FUNCTION();
 
     // SCOPE_TIMER(timer);
-    const Chunk& left =
-        world.generateChunk(chunk.worldIndex + glm::ivec2(-1, 0), false).first->second;
-    const Chunk& right =
-        world.generateChunk(chunk.worldIndex + glm::ivec2(1, 0), false).first->second;
-    const Chunk& front =
-        world.generateChunk(chunk.worldIndex + glm::ivec2(0, 1), false).first->second;
-    const Chunk& back =
-        world.generateChunk(chunk.worldIndex + glm::ivec2(0, -1), false).first->second;
 
     using Direction = utils::Direction;
 
@@ -111,46 +103,45 @@ void ChunkMesh::createMeshBetter(World& world) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::vec3(x, y, z);
                 glm::ivec3 worldPos = Chunk::getWorldPosition(chunk.worldIndex, pos);
-                BlockId block = chunk.getBlock(pos);
+                BlockId block = nearChunks.getBlock(pos);
 
-                BlockId prevXBlock = 0;
-                if (x > 0) prevXBlock = chunk.getBlock({x - 1, y, z});
-                else prevXBlock = left.getBlock({Chunk::CHUNK_SIZE - 1, y, z});
+                BlockId prevXBlock = nearChunks.getBlock({x - 1, y, z});
                 BlockId prevYBlock = 0;
                 if (y > 0) prevYBlock = chunk.getBlock({x, y - 1, z});
-                BlockId prevZBlock = 0;
-                if (z > 0) prevZBlock = chunk.getBlock({x, y, z - 1});
-                else prevZBlock = back.getBlock({x, y, Chunk::CHUNK_SIZE - 1});
+                BlockId prevZBlock = nearChunks.getBlock({x, y, z - 1});
 
                 // Faces only get added to the current block if they are facing west (1),
                 // down (3), or north (5)
 
-                if (block && !prevXBlock) {
+                // block && !prevXBlock
+                if (shouldAddFace(block, prevXBlock)) {
                     addFace(pos, Direction::WEST);
-                } else if (!block && prevXBlock && x > 0) {
+                } else if (shouldAddFace(prevXBlock, block) && x > 0) {
                     addFace(pos - glm::vec3(1, 0, 0), Direction::EAST);
                 }
 
-                if (block && !prevYBlock) {
+                if (shouldAddFace(block, prevYBlock)) {
                     addFace(pos, Direction::DOWN);
-                } else if (!block && prevYBlock) {
+                } else if (shouldAddFace(prevYBlock, block)) {
                     addFace(pos - glm::vec3(0, 1, 0), Direction::UP);
                 }
 
-                if (block && !prevZBlock) {
+                if (shouldAddFace(block, prevZBlock)) {
                     addFace(pos, Direction::NORTH);
-                } else if (!block && prevZBlock && z > 0) {
+                } else if (shouldAddFace(prevZBlock, block) && z > 0) {
                     addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH);
                 }
 
                 // Faces on east, up, and south edge of chunk
-                if (x == Chunk::CHUNK_SIZE - 1 && block && !right.getBlock({0, y, z})) {
+                if (x == Chunk::CHUNK_SIZE - 1 &&
+                    shouldAddFace(block, nearChunks.getBlock({Chunk::CHUNK_SIZE, y, z}))) {
                     addFace(pos, Direction::EAST);
                 }
-                if (y == Chunk::CHUNK_HEIGHT - 1 && block) {
+                if (y == Chunk::CHUNK_HEIGHT - 1 && shouldAddFace(block, Block::AIR)) {
                     addFace(pos, Direction::UP);
                 }
-                if (z == Chunk::CHUNK_SIZE - 1 && block && !front.getBlock({x, y, 0})) {
+                if (z == Chunk::CHUNK_SIZE - 1 &&
+                    shouldAddFace(block, nearChunks.getBlock({x, y, Chunk::CHUNK_SIZE}))) {
                     addFace(pos, Direction::SOUTH);
                 }
             }
@@ -224,11 +215,6 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     v3.textureIdx = textureIdx;
     v4.textureIdx = textureIdx;
 
-    // v1.aoValue = 0;
-    // v2.aoValue = 0;
-    // v3.aoValue = 0;
-    // v4.aoValue = 0;
-
     addTriangle(v1, v3, v2);
     addTriangle(v3, v4, v2);
 }
@@ -276,9 +262,21 @@ void ChunkMesh::calculateAO(
             cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
         }
 
-        int side1 = Chunk::inBounds(s1Pos) && chunk.getBlock(s1Pos) ? 1 : 0;
-        int side2 = Chunk::inBounds(s2Pos) && chunk.getBlock(s2Pos) ? 1 : 0;
-        int corner = Chunk::inBounds(cPos) && chunk.getBlock(cPos) ? 1 : 0;
+        // int side1 = Chunk::inBounds(s1Pos) && chunk.getBlock(s1Pos) ? 1 : 0;
+        int side1 = s1Pos.y >= 0 && s1Pos.y < Chunk::CHUNK_HEIGHT &&
+                            !Block::isAirOrTransparent(nearChunks.getBlock(s1Pos))
+                        ? 1
+                        : 0;
+        // int side2 = Chunk::inBounds(s2Pos) && chunk.getBlock(s2Pos) ? 1 : 0;
+        int side2 = s2Pos.y >= 0 && s2Pos.y < Chunk::CHUNK_HEIGHT &&
+                            !Block::isAirOrTransparent(nearChunks.getBlock(s2Pos))
+                        ? 1
+                        : 0;
+        // int corner = Chunk::inBounds(cPos) && chunk.getBlock(cPos) ? 1 : 0;
+        int corner = cPos.y >= 0 && cPos.y < Chunk::CHUNK_HEIGHT &&
+                             !Block::isAirOrTransparent(nearChunks.getBlock(cPos))
+                         ? 1
+                         : 0;
 
         if (side1 && side2) {
             v->aoValue = 0;
@@ -288,7 +286,18 @@ void ChunkMesh::calculateAO(
     }
 }
 
-ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk) {
+bool ChunkMesh::shouldAddFace(BlockId thisBlock, BlockId otherBlock) {
+    if (thisBlock && !otherBlock) return true;
+    if (Block::isTransparent(thisBlock) && Block::isTransparent(otherBlock)) {
+        if (thisBlock != otherBlock) return true;
+    }
+    if (thisBlock && !Block::isTransparent(thisBlock) && Block::isTransparent(otherBlock))
+        return true;
+
+    return false;
+}
+
+ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk), nearChunks(_chunk, world) {
     createMeshBetter(world);
 }
 
@@ -323,4 +332,54 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
 
 size_t ChunkMesh::getSize() const {
     return triangleVerts.size();
+}
+
+ChunkMesh::BorderingChunks::BorderingChunks(const Chunk& middleChunk, World& world) : chunks(9) {
+    chunks[4] = &middleChunk;
+
+    size_t i = 0;
+    for (int z = -1; z <= 1; z++) {
+        for (int x = -1; x <= 1; x++) {
+            if (i != 4) {
+                glm::ivec2 worldIdx = middleChunk.worldIndex + glm::ivec2(x, z);
+                chunks[i] = &world.generateChunk(worldIdx, false).first->second;
+            }
+            i++;
+        }
+    }
+}
+
+BlockId ChunkMesh::BorderingChunks::getBlock(glm::ivec3 chunkPos) const {
+    glm::ivec2 chunkOffset = glm::ivec2(0);
+
+    if (chunkPos.x < 0) chunkOffset.x = -1;
+    if (chunkPos.x >= Chunk::CHUNK_SIZE) chunkOffset.x = 1;
+
+    if (chunkPos.z < 0) chunkOffset.y = -1;
+    if (chunkPos.z >= Chunk::CHUNK_SIZE) chunkOffset.y = 1;
+
+    size_t borderingIdx = 4;
+    borderingIdx += chunkOffset.x;
+    borderingIdx += chunkOffset.y * 3;
+
+    chunkPos =
+        glm::ivec3(chunkPos.x % Chunk::CHUNK_SIZE, chunkPos.y, chunkPos.z % Chunk::CHUNK_SIZE);
+    if (chunkPos.x < 0) chunkPos.x += Chunk::CHUNK_SIZE;
+    if (chunkPos.z < 0) chunkPos.z += Chunk::CHUNK_SIZE;
+
+    if (chunkPos.x < 0 || chunkPos.z < 0) {
+        std::cout << borderingIdx << " | " << chunkPos.x << ", y, " << chunkPos.z << "\n";
+    }
+
+    // if (chunks[borderingIdx] == nullptr) {
+    //     for (auto i : chunks) {
+    //         std::cout << i << "\n";
+    //     }
+    // }
+
+    return chunks[borderingIdx]->getBlock(chunkPos);
+}
+
+const Chunk* const ChunkMesh::BorderingChunks::getMiddle() {
+    return chunks[4];
 }

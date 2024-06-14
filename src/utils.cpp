@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/gtc/noise.hpp>
+
 #include "utils.hpp"
 
 void clearGlErrors() {
@@ -44,4 +46,18 @@ utils::ScopeTimer::~ScopeTimer() {
     auto end = std::chrono::high_resolution_clock::now();
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Timer took " << durationMs.count() << "ms\n";
+}
+
+float utils::octiveNoise(glm::vec2 value, uint32_t octives, float lacunarity, float persistence) {
+    float result = 0;
+
+    float ampl = 1;
+    float freq = 1;
+    for (int i = 0; i < octives; i++) {
+        result += ampl * glm::simplex(value * freq);
+        freq *= lacunarity;
+        ampl /= persistence;
+    }
+
+    return result;
 }

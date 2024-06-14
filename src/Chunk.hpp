@@ -37,6 +37,7 @@ public:
     Chunk(const Chunk&) = delete;
     Chunk& operator=(const Chunk&) = delete;
 
+    // I just realized these should all be uvec3, not ivec3
     int getIndex(glm::ivec3 pos) const;
     BlockId getBlock(glm::ivec3 pos) const;
     void setBlock(glm::ivec3 pos, BlockId block);

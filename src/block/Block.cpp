@@ -48,6 +48,19 @@ void Block::initBlocks() {
     BlockData clay;
     clay.textureIdx = 8;
     blockDefs[CLAY] = clay;
+
+    BlockData sand;
+    sand.textureIdx = 6;
+    blockDefs[SAND] = sand;
+
+    BlockData water;
+    water.textureIdx = 16;
+    water.isTransparent = true;
+    blockDefs[WATER] = water;
+}
+
+bool Block::isTransparent(BlockId block) {
+    return blockDefs[block].isTransparent;
 }
 
 bool Block::isAirOrTransparent(BlockId block) {

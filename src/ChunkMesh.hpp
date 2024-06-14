@@ -32,6 +32,28 @@ public:
         uint32_t pack() const;
     };
 
+    /**
+     * Bordering chunks layout
+     *
+     * 0 1 2
+     * 3 4 5
+     * 6 7 8
+     *
+     * 4 is the chunk that the mesh is for
+     */
+
+    class BorderingChunks {
+    private:
+        // This code is fucked
+        // These will be dangling pointers when the neighboring chunks get unloaded! 😱
+        std::vector<const Chunk*> chunks;
+
+    public:
+        BorderingChunks(const Chunk& middleChunk, World& world);
+        BlockId getBlock(glm::ivec3 chunkPos) const;
+        const Chunk* const getMiddle(); // double const pointer bitch
+    };
+
     static const size_t vertexSize = 5 * sizeof(float) + 3 * sizeof(unsigned int);
     uint32_t generationTime;
 
@@ -48,6 +70,7 @@ private:
     GLuint VAO;
     GLuint VBO;
     const Chunk& chunk;
+    BorderingChunks nearChunks;
 
     void createMeshBetter(World& world);
     void addFace(const glm::vec3& pos, utils::Direction facing);
@@ -55,4 +78,5 @@ private:
     void addTriangle(Vertex v1, Vertex v2, Vertex v3);
     void
     calculateAO(std::vector<Vertex*>& verts, utils::Direction facing, const glm::ivec3& pos) const;
+    bool shouldAddFace(BlockId thisBlock, BlockId otherBlock);
 };

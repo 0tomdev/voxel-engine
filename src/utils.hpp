@@ -7,6 +7,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 #define DEBUG 1
 
 // #define GL_CALL(x)                                                                       \
@@ -67,5 +69,11 @@ template <typename T>
 T mapValue(T value, T inputMin, T inputMax, T outputMin, T outputMax) {
     return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
+
+/**
+ * @param lacunarity adjusts frequency
+ * @param persistance adjusts amplitude
+ */
+float octiveNoise(glm::vec2 value, uint32_t octives, float lacunarity = 2, float persistence = 2);
 
 } // namespace utils
