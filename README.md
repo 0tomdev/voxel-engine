@@ -2,10 +2,8 @@
 
 ## Screenshots
 
-### First version of terrain generation.
 ![Bad graphics](images/terrain1.png)
 
-### Added trees, water, and ambient occlusion.
 ![Better graphics](images/terrain2.png)
 
 ## Todo
