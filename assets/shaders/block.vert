@@ -14,6 +14,8 @@ flat out int bTextureIdx;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float time;
+uniform ivec3 chunkPos;
 
 // clang-format off
 const vec3 normalArray[6] = vec3[](
@@ -35,11 +37,13 @@ void main() {
 
     vec3 normal = normalArray[aNormalIdx];
 
-    vec3 vertPosition = aPos;
+    vec3 vertPos = aPos;
+    vec3 worldVertPos = chunkPos + vertPos;
     if (aIsLowered != uint(0)) {
-        vertPosition -= vec3(0, loweredAmount, 0);
+        float heightOffset = (sin(time + worldVertPos.x + worldVertPos.z) + 1) / 2 / 8;
+        vertPos -= vec3(0, loweredAmount + heightOffset, 0);
     }
-    gl_Position = projection * view * model * vec4(vertPosition, 1.0);
+    gl_Position = projection * view * model * vec4(vertPos, 1.0);
 
     bTexCoord = aTexCoord;
 

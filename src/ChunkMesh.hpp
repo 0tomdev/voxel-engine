@@ -53,7 +53,7 @@ public:
     public:
         BorderingChunks(const Chunk& middleChunk, World& world);
         BlockId getBlock(glm::ivec3 chunkPos) const;
-        const Chunk* const getMiddle(); // double const pointer :O
+        const Chunk* const getMiddle() const; // double const pointer :O
     };
 
     static const size_t vertexSize = sizeof(Vertex);

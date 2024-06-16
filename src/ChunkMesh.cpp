@@ -72,7 +72,8 @@ static unsigned int vertexColorLocation = -1;
 static unsigned int modelLoc = -1;
 static unsigned int viewLoc = -1;
 static unsigned int projectionLoc = -1;
-static unsigned int opacityLoc = -1;
+static unsigned int timeLoc = -1;
+static unsigned int chunkPosLoc = -1;
 
 /**
  * Load shaders here because GL functions can only be called after glewInit()
@@ -84,7 +85,8 @@ void ChunkMesh::init() {
     modelLoc = glGetUniformLocation(shaderValue.ID, "model");
     viewLoc = glGetUniformLocation(shaderValue.ID, "view");
     projectionLoc = glGetUniformLocation(shaderValue.ID, "projection");
-    opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
+    timeLoc = glGetUniformLocation(shaderValue.ID, "time");
+    chunkPosLoc = glGetUniformLocation(shaderValue.ID, "chunkPos");
 }
 
 void ChunkMesh::createMesh(World& world) {
@@ -173,7 +175,7 @@ void ChunkMesh::addQuad(
 
     if (isLiquid) {
         for (auto v : verts) {
-            if (facing == utils::Direction::UP) {
+            if (v->pos.y == 1) {
                 v->isLowered = 1;
             }
         }
@@ -295,7 +297,9 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
     GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
     GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
     GL_CALL(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
-    GL_CALL(glUniform1f(opacityLoc, 1.0f));
+    GL_CALL(glUniform1f(timeLoc, glfwGetTime()));
+    auto chunkPos = Chunk::getWorldPosition(nearChunks.getMiddle()->worldIndex, glm::ivec3(0));
+    GL_CALL(glUniform3iv(chunkPosLoc, 1, glm::value_ptr(chunkPos)));
 
     // Render
     glEnable(GL_CULL_FACE);
@@ -354,7 +358,7 @@ BlockId ChunkMesh::BorderingChunks::getBlock(glm::ivec3 chunkPos) const {
     return chunks[borderingIdx]->getBlock(chunkPos);
 }
 
-const Chunk* const ChunkMesh::BorderingChunks::getMiddle() {
+const Chunk* const ChunkMesh::BorderingChunks::getMiddle() const {
     return chunks[4];
 }
 

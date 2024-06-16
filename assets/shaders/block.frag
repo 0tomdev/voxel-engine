@@ -7,7 +7,7 @@ in vec3 bVertColor;
 flat in int bTextureIdx;
 
 uniform sampler2D ourTexture;
-uniform float opacity;
+uniform float time;
 
 // Height and width of texture atlas, measured in number of blocks
 int atlasSize = 16;
