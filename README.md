@@ -15,8 +15,10 @@
 - [x] Ambient occlusion
 - [ ] Refactor code
 
-## Progress Screenshots
+## Screenshots
 
-![Bad graphics](images/terrain1.png)
+![Cool water](images/water_close.png)
 
 ![Better graphics](images/terrain2.png)
+
+![Bad graphics](images/terrain1.png)
