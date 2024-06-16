@@ -1,5 +1,5 @@
 # Compilier options
-CC := clang++
+CC := g++
 CFLAGS := -std=c++20 -O
 
 BUILD_DIR := build
@@ -26,7 +26,7 @@ SRC := $(shell find $(SRC_DIR) -name "*.cpp")
 OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC))
 
 
-all: $(OUTPUT) run
+all: $(OUTPUT)
 
 $(OUTPUT): $(OBJ)
 	$(CC) $(OBJ) -o $(OUTPUT) $(LIB_FLAGS)

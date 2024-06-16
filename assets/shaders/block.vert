@@ -5,6 +5,7 @@ layout(location = 1) in vec2 aTexCoord;
 layout(location = 2) in uint aNormalIdx;
 layout(location = 3) in int aTexIdx;
 layout(location = 4) in int aOcclusionValue;
+layout(location = 5) in uint aIsLowered;
 
 out vec2 bTexCoord;
 out vec3 bVertColor;
@@ -30,10 +31,15 @@ float map(float value, float min1, float max1, float min2, float max2) {
 }
 
 void main() {
+    const float loweredAmount = 4.0 / 16.0;
+
     vec3 normal = normalArray[aNormalIdx];
-    // normal *= vec3(0, 0, 1);
-    bVertColor = ((normal + 1) / 2.0);
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+
+    vec3 vertPosition = aPos;
+    if (aIsLowered != uint(0)) {
+        vertPosition -= vec3(0, loweredAmount, 0);
+    }
+    gl_Position = projection * view * model * vec4(vertPosition, 1.0);
 
     bTexCoord = aTexCoord;
 

@@ -60,6 +60,7 @@ void Block::initBlocks() {
     water.textureIdx = 16;
     water.isTransparent = true;
     water.causesAO = false;
+    water.isLiquid = true;
     blockDefs[WATER] = water;
 }
 

@@ -87,14 +87,12 @@ void ChunkMesh::init() {
     opacityLoc = glGetUniformLocation(shaderValue.ID, "opacity");
 }
 
-void ChunkMesh::createMeshBetter(World& world) {
+void ChunkMesh::createMesh(World& world) {
     assert(vertexSize == sizeof(Vertex));
-
-    auto startTime = std::chrono::high_resolution_clock::now();
 
     PROFILE_FUNCTION();
 
-    // SCOPE_TIMER(timer);
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     using Direction = utils::Direction;
 
@@ -113,7 +111,6 @@ void ChunkMesh::createMeshBetter(World& world) {
                 // Faces only get added to the current block if they are facing west (1),
                 // down (3), or north (5)
 
-                // block && !prevXBlock
                 if (shouldAddFace(block, prevXBlock)) {
                     addFace(pos, Direction::WEST);
                 } else if (shouldAddFace(prevXBlock, block) && x > 0) {
@@ -152,52 +149,20 @@ void ChunkMesh::createMeshBetter(World& world) {
 
     generationTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-
-    {
-        PROFILE_SCOPE("Send Mesh Data");
-
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-
-        glGenBuffers(1, &VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(
-            GL_ARRAY_BUFFER, triangleVerts.size() * vertexSize, &triangleVerts[0], GL_STATIC_DRAW
-        );
-
-        // xyz coords
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
-        glEnableVertexAttribArray(0);
-
-        // uv coords
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
-        glEnableVertexAttribArray(1);
-
-        // Normal
-        glVertexAttribPointer(
-            2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
-        );
-        glEnableVertexAttribArray(2);
-
-        // Texture index
-        glVertexAttribPointer(
-            3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
-        );
-        glEnableVertexAttribArray(3);
-
-        // AO value
-        glVertexAttribPointer(
-            4, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, aoValue))
-        );
-        glEnableVertexAttribArray(4);
-    }
 }
 
 void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing) {
-    addQuad(pos, facing, Block::blockDefs[chunk.getBlock(pos)].getTextureIdx(facing));
+    BlockId block = chunk.getBlock(pos);
+    Mesh& mesh = Block::isTransparent(block) ? transparentMesh : opaqueMesh;
+    addQuad(
+        pos, facing, Block::blockDefs[block].getTextureIdx(facing), mesh,
+        Block::blockDefs[block].isLiquid
+    );
 }
 
-void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
+void ChunkMesh::addQuad(
+    const glm::vec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid
+) {
     Vertex v1 = allCubeVertices[facing * 4 + 0];
     Vertex v2 = allCubeVertices[facing * 4 + 1];
     Vertex v3 = allCubeVertices[facing * 4 + 2];
@@ -205,6 +170,14 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
 
     std::vector<Vertex*> verts = {&v1, &v2, &v3, &v4};
     calculateAO(verts, (utils::Direction)facing, pos);
+
+    if (isLiquid) {
+        for (auto v : verts) {
+            if (facing == utils::Direction::UP) {
+                v->isLowered = 1;
+            }
+        }
+    }
 
     v1.pos += pos;
     v2.pos += pos;
@@ -215,14 +188,14 @@ void ChunkMesh::addQuad(const glm::vec3& pos, int facing, int textureIdx) {
     v3.textureIdx = textureIdx;
     v4.textureIdx = textureIdx;
 
-    addTriangle(v1, v3, v2);
-    addTriangle(v3, v4, v2);
+    addTriangle(v1, v3, v2, mesh);
+    addTriangle(v3, v4, v2, mesh);
 }
 
-void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3) {
-    triangleVerts.push_back(v1);
-    triangleVerts.push_back(v2);
-    triangleVerts.push_back(v3);
+void ChunkMesh::addTriangle(Vertex v1, Vertex v2, Vertex v3, Mesh& mesh) {
+    mesh.vertices.push_back(v1);
+    mesh.vertices.push_back(v2);
+    mesh.vertices.push_back(v3);
 }
 
 void ChunkMesh::calculateAO(
@@ -262,11 +235,6 @@ void ChunkMesh::calculateAO(
             cPos = (glm::ivec3)pos + glm::ivec3(x, y, z);
         }
 
-        // int side1 = !Block::isAirOrTransparent(nearChunks.getBlock(s1Pos)) ? 1 : 0;
-        // int side2 = !Block::isAirOrTransparent(nearChunks.getBlock(s2Pos)) ? 1 : 0;
-        // int corner = !Block::isAirOrTransparent(nearChunks.getBlock(cPos)) ? 1 : 0;
-
-        // somethin doesnt look right here (nvm)
         int side1 = 0;
         if (s1Pos.y >= 0 && s1Pos.y < Chunk::CHUNK_HEIGHT) {
             if (Block::blockDefs[nearChunks.getBlock(s1Pos)].causesAO) side1 = 1;
@@ -288,7 +256,7 @@ void ChunkMesh::calculateAO(
     }
 }
 
-bool ChunkMesh::shouldAddFace(BlockId thisBlock, BlockId otherBlock) {
+bool ChunkMesh::shouldAddFace(BlockId thisBlock, BlockId otherBlock) const {
     if (thisBlock && !otherBlock) return true;
     if (Block::isTransparent(thisBlock) && Block::isTransparent(otherBlock)) {
         if (thisBlock != otherBlock) return true;
@@ -300,13 +268,16 @@ bool ChunkMesh::shouldAddFace(BlockId thisBlock, BlockId otherBlock) {
 }
 
 ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk), nearChunks(_chunk, world) {
-    createMeshBetter(world);
+    createMesh(world);
+
+    opaqueMesh.createBuffers();
+    transparentMesh.createBuffers();
 }
 
 ChunkMesh::~ChunkMesh() {
     // LOG("Deleted mesh");
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    opaqueMesh.deleteBuffers();
+    transparentMesh.deleteBuffers();
 }
 
 void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
@@ -327,13 +298,14 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
     GL_CALL(glUniform1f(opacityLoc, 1.0f));
 
     // Render
-    GL_CALL(glBindVertexArray(VAO));
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
-    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, triangleVerts.size()));
+    glEnable(GL_CULL_FACE);
+    opaqueMesh.render();
+    glDisable(GL_CULL_FACE);
+    transparentMesh.render();
 }
 
 size_t ChunkMesh::getSize() const {
-    return triangleVerts.size();
+    return opaqueMesh.vertices.size() + transparentMesh.vertices.size();
 }
 
 ChunkMesh::BorderingChunks::BorderingChunks(const Chunk& middleChunk, World& world) : chunks(9) {
@@ -384,4 +356,54 @@ BlockId ChunkMesh::BorderingChunks::getBlock(glm::ivec3 chunkPos) const {
 
 const Chunk* const ChunkMesh::BorderingChunks::getMiddle() {
     return chunks[4];
+}
+
+void ChunkMesh::Mesh::createBuffers() {
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, &vertices[0], GL_STATIC_DRAW);
+
+    // xyz coords
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // uv coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, u)));
+    glEnableVertexAttribArray(1);
+
+    // Normal
+    glVertexAttribPointer(
+        2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, normal))
+    );
+    glEnableVertexAttribArray(2);
+
+    // Texture index
+    glVertexAttribPointer(
+        3, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, textureIdx))
+    );
+    glEnableVertexAttribArray(3);
+
+    // AO value
+    glVertexAttribPointer(4, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, aoValue)));
+    glEnableVertexAttribArray(4);
+
+    // isLowered
+    glVertexAttribPointer(
+        5, 1, GL_UNSIGNED_BYTE, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, isLowered))
+    );
+    glEnableVertexAttribArray(5);
+}
+
+void ChunkMesh::Mesh::deleteBuffers() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+void ChunkMesh::Mesh::render() const {
+    GL_CALL(glBindVertexArray(VAO));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, vertices.size()));
 }

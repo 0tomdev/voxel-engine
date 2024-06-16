@@ -105,7 +105,9 @@ World::generateChunk(glm::ivec2 worldIdx, bool createMesh) {
 
     if (!wasInserted) {
         // This line can cause random segfaults btw
-        if (createMesh && !chunk.mesh) chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
+        if (createMesh && !chunk.mesh) {
+            chunk.mesh = std::make_unique<ChunkMesh>(chunk, *this);
+        }
         return result;
     }
 

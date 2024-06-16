@@ -169,7 +169,6 @@ int main() {
         ImGui::NewFrame();
         ImGuiIO& io = ImGui::GetIO();
 
-        glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, texture.id);
         // cam.position = world->player.position;
@@ -202,25 +201,6 @@ int main() {
                 ImGui::Text("Mesh size: %i kb", mesh->getSize() * ChunkMesh::vertexSize / 1024);
                 ImGui::Text("Generation time: %i ms", mesh->generationTime);
             }
-
-            // ImGui::SeparatorText("World Editing");
-            // static glm::ivec3 pos;
-            // static int blockId;
-            // ImGui::InputInt3("Block position", &pos.x);
-            // ImGui::InputInt("Block ID", &blockId);
-            // auto idx = glm::ivec2(0, 0);
-            // if (ImGui::Button("Place Block")) {
-            //     auto it = world.chunks.find(idx);
-            //     if (it != world.chunks.end()) {
-            //         it->second.setBlock(pos, Block::STONE_BRICKS);
-            //     }
-            // }
-            // if (ImGui::Button("Remesh")) {
-            //     auto it = world.chunks.find(idx);
-            //     if (it != world.chunks.end()) {
-            //         world.chunkMeshes.at(idx) = ChunkMesh(it->second);
-            //     }
-            // }
 
             ImGui::EndDisabled();
             ImGui::End();

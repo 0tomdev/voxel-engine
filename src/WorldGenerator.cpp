@@ -20,12 +20,17 @@ void WorldGenerator::generateTerrain(Chunk& chunk) {
 
             int intHeight = (int)height;
 
+            const int sandVal = utils::getRandom(2, 3);
             for (int y = 0; y < std::max(intHeight, waterLevel); y++) {
                 worldPos.y = y;
 
                 BlockId b;
                 if (y < intHeight) {
-                    if (y == intHeight - 1) {
+                    if (abs(intHeight - waterLevel) <= sandVal) {
+                        b = Block::SAND;
+                    } else if (intHeight < waterLevel) {
+                        b = Block::CLAY;
+                    } else if (y == intHeight - 1) {
                         b = Block::GRASS;
                     } else if (y >= intHeight - (1 + dirtLayerHeight)) {
                         b = Block::DIRT;

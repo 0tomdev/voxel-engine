@@ -27,10 +27,10 @@ enum Name : BlockId {
 };
 
 struct BlockData {
-    // std::function<int(utils::Direction)> getTextureIdx = nullptr;
     int textureIdx = 255;
     bool isTransparent = false;
     bool causesAO = true;
+    bool isLiquid = false;
 
     std::optional<int> sideTextureIdx;
     std::optional<int> topTextureIdx;
