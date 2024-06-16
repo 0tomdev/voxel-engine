@@ -194,6 +194,7 @@ int main() {
                 world->getNumChunks() * Chunk::CHUNK_ARRAY_SIZE * sizeof(BlockId) / 1000
             );
 
+            // Need to handle error for this line
             const ChunkMesh* mesh = world->chunks.at(chunkIdx).mesh.get();
 
             if (mesh) {

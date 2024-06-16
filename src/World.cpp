@@ -1,14 +1,7 @@
 #include "World.hpp"
 #include <Instrumentor.h>
 
-World::World() {
-    // for (int z = -renderDistance; z < renderDistance + 1; z++) {
-    //     for (int x = -renderDistance; x < renderDistance + 1; x++) {
-    //         auto idx = glm::ivec2(x, z);
-    //         generateChunk(idx);
-    //     }
-    // }
-}
+World::World() {}
 
 BlockId World::getBlock(glm::ivec3 worldPos) const {
     glm::ivec2 chunkWorldIdx = Chunk::getWorldIndex(worldPos);
@@ -82,7 +75,6 @@ void World::update() {
                 for (int x = worldIdx.x - renderDistance; x < worldIdx.x + renderDistance + 1;
                      x++) {
                     auto idx = glm::ivec2(x, z);
-                    // Optimize: the unordered_maps are slow (kind of)
                     if (generateChunk(idx, true).second) {
                         // LOG("Generated chunk (" << x << ", " << z << ")");
                     }

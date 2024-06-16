@@ -12,10 +12,11 @@ class World {
 public:
     using ChunkMapType = std::unordered_map<glm::ivec2, Chunk>;
     ChunkMapType chunks;
-
-    int renderDistance = 15;
-
     Player player;
+    const int renderDistance = 15;
+    // Max number of chunks that will be generated per frame
+    const int chunkGenLimit = 3;
+    int chunkGenCount = 0;
 
     World();
 

@@ -14,6 +14,7 @@
 - [ ] Placing/breaking blocks
 - [x] Ambient occlusion
 - [ ] Refactor code
+- [ ] Make my own textures
 
 ## Screenshots
 
