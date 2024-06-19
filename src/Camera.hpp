@@ -16,8 +16,8 @@ public:
 
     Camera();
 
-    const glm::vec3& getDirection();
-    const glm::vec3& getUp();
+    const glm::vec3& getDirection() const;
+    const glm::vec3& getUp() const;
 
     glm::mat4 getViewMatrix() const;
 };

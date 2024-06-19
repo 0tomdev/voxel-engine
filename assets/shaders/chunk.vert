@@ -5,7 +5,7 @@ layout(location = 1) in vec2 aTexCoord;
 layout(location = 2) in uint aNormalIdx;
 layout(location = 3) in int aTexIdx;
 layout(location = 4) in int aOcclusionValue;
-layout(location = 5) in uint aIsLowered;
+layout(location = 5) in uint aFlags;
 
 out vec2 bTexCoord;
 out vec3 bVertColor;
@@ -16,6 +16,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float time;
 uniform ivec3 chunkPos;
+uniform ivec3 selectedBlock;
 
 // clang-format off
 const vec3 normalArray[6] = vec3[](
@@ -39,7 +40,12 @@ void main() {
 
     vec3 vertPos = aPos;
     vec3 worldVertPos = chunkPos + vertPos;
-    if (aIsLowered != uint(0)) {
+
+    // Extract flags
+    bool isLowered = (aFlags & 1u) != 0u;
+    bool isSelected = (aFlags & (1u << 1)) != 0u;
+
+    if (isLowered) {
         float heightOffset = (sin(time + worldVertPos.x + worldVertPos.z) + 1) / 2 / 8;
         vertPos -= vec3(0, loweredAmount + heightOffset, 0);
     }
@@ -49,7 +55,11 @@ void main() {
 
     // This is between 0 and 1. Lower value means darker AO.
     float aoMinMultipler = 0.5;
+
     bVertColor = vec3(map(aOcclusionValue, 0, 3, aoMinMultipler, 1));
+    if (isSelected) {
+        bVertColor *= 1.5;
+    }
 
     bTextureIdx = aTexIdx;
 }

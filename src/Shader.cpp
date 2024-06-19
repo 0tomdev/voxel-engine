@@ -50,8 +50,7 @@ Shader::Shader(const char* vertexPath, const char* fragPath) {
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     };
 
     // similiar for Fragment Shader
@@ -62,8 +61,7 @@ Shader::Shader(const char* vertexPath, const char* fragPath) {
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::fragment::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::fragment::COMPILATION_FAILED\n" << infoLog << std::endl;
     };
 
     // shader Program
@@ -81,4 +79,16 @@ Shader::Shader(const char* vertexPath, const char* fragPath) {
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+}
+
+GLint Shader::getUniformLocation(const std::string& name) const {
+    std::string result;
+    auto it = uniformLocations.find(name);
+    if (it != uniformLocations.end()) {
+        return it->second;
+    }
+
+    GLint loc = glGetUniformLocation(ID, name.c_str());
+    uniformLocations[result] = loc;
+    return loc;
 }

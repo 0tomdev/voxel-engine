@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 
-#include "Shader.hpp"
-#include "block/Block.hpp"
+#include "../Shader.hpp"
+#include "../block/Block.hpp"
 #include "ChunkMesh.hpp"
 
 class ChunkMesh;
@@ -15,7 +15,6 @@ public:
     static const int CHUNK_ARRAY_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
     static glm::ivec2 getWorldIndex(glm::vec3 worldPos);
-    static glm::ivec3 getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos);
     static bool inBounds(glm::ivec3 chunkPos);
 
     const glm::ivec2 worldIndex;
@@ -27,10 +26,8 @@ public:
     Chunk(glm::ivec2 worldIndex);
     ~Chunk();
 
-    // Move constructor
+    // Move constructor (this causes a compiler warning but there's an error if I delete it)
     Chunk(Chunk&& other) noexcept = default;
-
-    // Move assignment operator
     Chunk& operator=(Chunk&& other) noexcept = default;
 
     // Delete copy constructor and copy assignment operator
@@ -41,4 +38,6 @@ public:
     int getIndex(glm::ivec3 pos) const;
     BlockId getBlock(glm::ivec3 pos) const;
     void setBlock(glm::ivec3 pos, BlockId block);
+    glm::ivec3 getWorldPosition(glm::ivec3 chunkPos) const;
+    glm::ivec3 getChunkPosition(glm::ivec3 worldPos) const;
 };

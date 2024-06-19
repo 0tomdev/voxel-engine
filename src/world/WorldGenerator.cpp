@@ -8,7 +8,7 @@ void WorldGenerator::generateTerrain(Chunk& chunk) {
 
     for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
         for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
-            auto worldPos = Chunk::getWorldPosition(chunk.worldIndex, glm::ivec3(x, 0, z));
+            auto worldPos = chunk.getWorldPosition(glm::ivec3(x, 0, z));
 
             float num = utils::getRandom(0.0f, 1.0f);
 

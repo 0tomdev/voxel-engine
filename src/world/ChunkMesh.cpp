@@ -6,10 +6,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ChunkMesh.hpp"
-#include "utils.hpp"
-#include "block/Block.hpp"
+#include "../utils.hpp"
+#include "../block/Block.hpp"
 #include "World.hpp"
-#include <Instrumentor.h>
+#include "../Application.hpp"
 
 // https://github.com/jdah/minecraft-again/blob/master/src/level/chunk_renderer.cpp 😋
 // Right handed system: https://learnopengl.com/Getting-started/Coordinate-Systems
@@ -67,32 +67,8 @@ static std::vector<ChunkMesh::Vertex> allCubeVertices = {
 };
 // clang-format on
 
-static std::optional<Shader> shader;
-static unsigned int vertexColorLocation = -1;
-static unsigned int modelLoc = -1;
-static unsigned int viewLoc = -1;
-static unsigned int projectionLoc = -1;
-static unsigned int timeLoc = -1;
-static unsigned int chunkPosLoc = -1;
-
-/**
- * Load shaders here because GL functions can only be called after glewInit()
- * */
-void ChunkMesh::init() {
-    shader = Shader("./assets/shaders/block.vert", "./assets/shaders/block.frag");
-    const Shader& shaderValue = shader.value();
-    vertexColorLocation = glGetUniformLocation(shaderValue.ID, "time");
-    modelLoc = glGetUniformLocation(shaderValue.ID, "model");
-    viewLoc = glGetUniformLocation(shaderValue.ID, "view");
-    projectionLoc = glGetUniformLocation(shaderValue.ID, "projection");
-    timeLoc = glGetUniformLocation(shaderValue.ID, "time");
-    chunkPosLoc = glGetUniformLocation(shaderValue.ID, "chunkPos");
-}
-
-void ChunkMesh::createMesh(World& world) {
+void ChunkMesh::createMesh() {
     assert(vertexSize == sizeof(Vertex));
-
-    PROFILE_FUNCTION();
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -101,8 +77,8 @@ void ChunkMesh::createMesh(World& world) {
     for (int y = 0; y < Chunk::CHUNK_HEIGHT; y++) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
-                auto pos = glm::vec3(x, y, z);
-                glm::ivec3 worldPos = Chunk::getWorldPosition(chunk.worldIndex, pos);
+                auto pos = glm::ivec3(x, y, z);
+                glm::ivec3 worldPos = chunk.getWorldPosition(pos);
                 BlockId block = nearChunks.getBlock(pos);
 
                 BlockId prevXBlock = nearChunks.getBlock({x - 1, y, z});
@@ -116,19 +92,19 @@ void ChunkMesh::createMesh(World& world) {
                 if (shouldAddFace(block, prevXBlock)) {
                     addFace(pos, Direction::WEST);
                 } else if (shouldAddFace(prevXBlock, block) && x > 0) {
-                    addFace(pos - glm::vec3(1, 0, 0), Direction::EAST);
+                    addFace(pos - glm::ivec3(1, 0, 0), Direction::EAST);
                 }
 
                 if (shouldAddFace(block, prevYBlock)) {
                     addFace(pos, Direction::DOWN);
                 } else if (shouldAddFace(prevYBlock, block)) {
-                    addFace(pos - glm::vec3(0, 1, 0), Direction::UP);
+                    addFace(pos - glm::ivec3(0, 1, 0), Direction::UP);
                 }
 
                 if (shouldAddFace(block, prevZBlock)) {
                     addFace(pos, Direction::NORTH);
                 } else if (shouldAddFace(prevZBlock, block) && z > 0) {
-                    addFace(pos - glm::vec3(0, 0, 1), Direction::SOUTH);
+                    addFace(pos - glm::ivec3(0, 0, 1), Direction::SOUTH);
                 }
 
                 // Faces on east, up, and south edge of chunk
@@ -153,7 +129,20 @@ void ChunkMesh::createMesh(World& world) {
         std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 }
 
-void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing) {
+void ChunkMesh::rebuild() {
+    opaqueMesh.vertices.clear();
+    transparentMesh.vertices.clear();
+
+    opaqueMesh.deleteBuffers();
+    transparentMesh.deleteBuffers();
+
+    createMesh();
+
+    opaqueMesh.createBuffers();
+    transparentMesh.createBuffers();
+}
+
+void ChunkMesh::addFace(const glm::ivec3& pos, utils::Direction facing) {
     BlockId block = chunk.getBlock(pos);
     Mesh& mesh = Block::isTransparent(block) ? transparentMesh : opaqueMesh;
     addQuad(
@@ -163,7 +152,7 @@ void ChunkMesh::addFace(const glm::vec3& pos, utils::Direction facing) {
 }
 
 void ChunkMesh::addQuad(
-    const glm::vec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid
+    const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid
 ) {
     Vertex v1 = allCubeVertices[facing * 4 + 0];
     Vertex v2 = allCubeVertices[facing * 4 + 1];
@@ -176,7 +165,7 @@ void ChunkMesh::addQuad(
     if (isLiquid) {
         for (auto v : verts) {
             if (v->pos.y == 1) {
-                v->isLowered = 1;
+                v->flags = v->flags | 1;
             }
         }
     }
@@ -269,8 +258,8 @@ bool ChunkMesh::shouldAddFace(BlockId thisBlock, BlockId otherBlock) const {
     return false;
 }
 
-ChunkMesh::ChunkMesh(const Chunk& _chunk, World& world) : chunk(_chunk), nearChunks(_chunk, world) {
-    createMesh(world);
+ChunkMesh::ChunkMesh(const Chunk& _chunk) : chunk(_chunk), nearChunks(_chunk) {
+    createMesh();
 
     opaqueMesh.createBuffers();
     transparentMesh.createBuffers();
@@ -282,7 +271,12 @@ ChunkMesh::~ChunkMesh() {
     transparentMesh.deleteBuffers();
 }
 
-void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
+void ChunkMesh::render(const Camera& camera, float aspectRatio) {
+    if (shouldRebuild) {
+        rebuild();
+        shouldRebuild = false;
+    }
+
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection =
         glm::perspective(glm::radians(camera.fov), aspectRatio, camera.nearClip, camera.farClip);
@@ -292,13 +286,26 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio) const {
     );
 
     // Shader
-    const Shader& shaderValue = shader.value();
-    GL_CALL(glUseProgram(shaderValue.ID));
+    // const Shader& shaderValue = shader.value();
+    const Shader& shader = Application::get().shaders.at("chunk");
+
+    GLint viewLoc = shader.getUniformLocation("view");
+    GLint projectionLoc = shader.getUniformLocation("projection");
+    GLint modelLoc = shader.getUniformLocation("model");
+    GLint timeLoc = shader.getUniformLocation("time");
+    GLint chunkPosLoc = shader.getUniformLocation("chunkPos");
+    GLint selectedBlockLoc = shader.getUniformLocation("selectedBlock");
+
+    const auto selectedBlock = glm::ivec3(0, 180, 11);
+
+    GL_CALL(glUseProgram(shader.ID));
     GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
     GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
     GL_CALL(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
     GL_CALL(glUniform1f(timeLoc, glfwGetTime()));
-    auto chunkPos = Chunk::getWorldPosition(nearChunks.getMiddle()->worldIndex, glm::ivec3(0));
+    GL_CALL(glUniform3iv(selectedBlockLoc, 1, glm::value_ptr(selectedBlock)));
+
+    auto chunkPos = nearChunks.getMiddle()->getWorldPosition(glm::ivec3(0));
     GL_CALL(glUniform3iv(chunkPosLoc, 1, glm::value_ptr(chunkPos)));
 
     // Render
@@ -312,7 +319,9 @@ size_t ChunkMesh::getSize() const {
     return opaqueMesh.vertices.size() + transparentMesh.vertices.size();
 }
 
-ChunkMesh::BorderingChunks::BorderingChunks(const Chunk& middleChunk, World& world) : chunks(9) {
+ChunkMesh::BorderingChunks::BorderingChunks(const Chunk& middleChunk) : chunks(9) {
+    auto world = Application::get().world.get();
+
     chunks[4] = &middleChunk;
 
     size_t i = 0;
@@ -320,7 +329,7 @@ ChunkMesh::BorderingChunks::BorderingChunks(const Chunk& middleChunk, World& wor
         for (int x = -1; x <= 1; x++) {
             if (i != 4) {
                 glm::ivec2 worldIdx = middleChunk.worldIndex + glm::ivec2(x, z);
-                chunks[i] = &world.generateChunk(worldIdx, false).first->second;
+                chunks[i] = &world->generateChunk(worldIdx, false).first->second;
             }
             i++;
         }
@@ -394,9 +403,9 @@ void ChunkMesh::Mesh::createBuffers() {
     glVertexAttribPointer(4, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, aoValue)));
     glEnableVertexAttribArray(4);
 
-    // isLowered
+    // flags
     glVertexAttribPointer(
-        5, 1, GL_UNSIGNED_BYTE, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, isLowered))
+        5, 1, GL_UNSIGNED_BYTE, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, flags))
     );
     glEnableVertexAttribArray(5);
 }

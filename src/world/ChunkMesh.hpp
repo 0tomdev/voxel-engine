@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Chunk.hpp"
-#include "Camera.hpp"
+#include "../Camera.hpp"
 
 class Chunk;
-class World;
 
 class ChunkMesh {
 public:
@@ -14,7 +13,12 @@ public:
         unsigned int normal;
         unsigned int aoValue = 3;
         int textureIdx;
-        GLubyte isLowered = 0; // makes water a bit shorter than regular blocks
+
+        /**
+         * 1: isLowered
+         * 1 << 1: nothing (yet)
+         */
+        GLubyte flags = 0;
 
         Vertex(float x, float y, float z, float u, float v, unsigned int normal)
             : pos(x, y, z), u(u), v(v), normal(normal) {}
@@ -51,20 +55,19 @@ public:
         std::vector<const Chunk*> chunks;
 
     public:
-        BorderingChunks(const Chunk& middleChunk, World& world);
+        BorderingChunks(const Chunk& middleChunk);
         BlockId getBlock(glm::ivec3 chunkPos) const;
         const Chunk* const getMiddle() const; // double const pointer :O
     };
 
     static const size_t vertexSize = sizeof(Vertex);
     uint32_t generationTime;
+    bool shouldRebuild;
 
-    ChunkMesh(const Chunk& chunk, World& world);
+    ChunkMesh(const Chunk& chunk);
     ~ChunkMesh();
 
-    static void init();
-
-    void render(const Camera& camera, float aspectRatio) const;
+    void render(const Camera& camera, float aspectRatio);
     size_t getSize() const;
 
 private:
@@ -74,11 +77,12 @@ private:
     Mesh opaqueMesh;
     Mesh transparentMesh;
 
-    void createMesh(World& world);
-    void addFace(const glm::vec3& pos, utils::Direction facing);
-    void addQuad(const glm::vec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid);
+    void createMesh();
+    void addFace(const glm::ivec3& pos, utils::Direction facing);
+    void addQuad(const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid);
     void addTriangle(Vertex v1, Vertex v2, Vertex v3, Mesh& mesh);
     void
     calculateAO(std::vector<Vertex*>& verts, utils::Direction facing, const glm::ivec3& pos) const;
     bool shouldAddFace(BlockId thisBlock, BlockId otherBlock) const;
+    void rebuild();
 };

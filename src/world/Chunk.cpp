@@ -9,14 +9,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Chunk.hpp"
-#include "utils.hpp"
+#include "../utils.hpp"
 
 glm::ivec2 Chunk::getWorldIndex(glm::vec3 worldPos) {
     return glm::floor(glm::vec2(worldPos.x, worldPos.z) / (float)CHUNK_SIZE);
-}
-
-glm::ivec3 Chunk::getWorldPosition(glm::ivec2 worldIndex, glm::ivec3 chunkPos) {
-    return glm::ivec3(worldIndex.x, 0, worldIndex.y) * CHUNK_SIZE + chunkPos;
 }
 
 bool Chunk::inBounds(glm::ivec3 chunkPos) {
@@ -49,4 +45,14 @@ BlockId Chunk::getBlock(glm::ivec3 pos) const {
 void Chunk::setBlock(glm::ivec3 pos, BlockId block) {
     int idx = getIndex(pos);
     data[idx] = block;
+}
+
+glm::ivec3 Chunk::getWorldPosition(glm::ivec3 chunkPos) const {
+    return glm::ivec3(worldIndex.x, 0, worldIndex.y) * CHUNK_SIZE + chunkPos;
+}
+
+glm::ivec3 Chunk::getChunkPosition(glm::ivec3 worldPos) const {
+    int x = worldPos.x % CHUNK_SIZE;
+    int z = worldPos.z % CHUNK_SIZE;
+    return glm::ivec3(x, worldPos.y, z);
 }

@@ -76,4 +76,9 @@ T mapValue(T value, T inputMin, T inputMax, T outputMin, T outputMax) {
  */
 float octiveNoise(glm::vec2 value, uint32_t octives, float lacunarity = 2, float persistence = 2);
 
+struct Ray {
+    glm::vec3 origin, direction;
+    float length;
+};
+
 } // namespace utils

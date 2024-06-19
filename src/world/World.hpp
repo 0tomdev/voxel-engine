@@ -1,15 +1,23 @@
+#pragma once
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
 #include "Chunk.hpp"
 #include "ChunkMesh.hpp"
-#include "Player.hpp"
+#include "../Player.hpp"
 #include "WorldGenerator.hpp"
 
 class WorldGenerator;
 
 class World {
 public:
+    struct RayCastResult {
+        bool hit;
+        glm::ivec3 blockPosition;
+        utils::Direction face;
+    };
+
     using ChunkMapType = std::unordered_map<glm::ivec2, Chunk>;
     ChunkMapType chunks;
     Player player;
@@ -23,11 +31,12 @@ public:
     BlockId getBlock(glm::ivec3 pos) const;
     BlockId getBlockOrGenChunk(glm::ivec3 pos);
     void setBlock(glm::ivec3 pos, BlockId block);
-    void render(const Camera& camera, float aspectRatio) const;
+    void render(float aspectRatio) const;
     size_t getNumChunks() const;
-    void update();
+    void update(float deltaTime);
     std::pair<World::ChunkMapType::iterator, bool>
     generateChunk(glm::ivec2 worldIdx, bool createMesh);
+    RayCastResult castRay(const utils::Ray& ray);
 
 private:
     WorldGenerator worldGen;

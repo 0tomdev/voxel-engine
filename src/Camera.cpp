@@ -14,10 +14,10 @@ glm::mat4 Camera::getViewMatrix() const {
     return view;
 }
 
-const glm::vec3& Camera::getDirection() {
+const glm::vec3& Camera::getDirection() const {
     return direction;
 }
 
-const glm::vec3& Camera::getUp() {
+const glm::vec3& Camera::getUp() const {
     return up;
 }
