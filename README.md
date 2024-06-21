@@ -2,19 +2,22 @@
 
 ## Todo
 
+- [ ] Fix visual glitches with water
+- [ ] Make my own textures
+- [ ] Physics
+- [ ] Good terrain generation
+- [ ] Improve chunk loading/unloading
+- [ ] Optimize VRAM usage
+- [ ] Refactor code
+- [ ] Sort faces in transparent mesh
 - [x] Loading multiple chunks
 - [x] Different block types
 - [x] Sort chunks by distance to player
 - [x] Water
-- [ ] Sort faces in transparent mesh
 - [x] Separate transparent blocks into different mesh
 - [x] Trees
-- [ ] Good terrain generation
-- [ ] Optimize VRAM usage
-- [ ] Placing/breaking blocks
 - [x] Ambient occlusion
-- [ ] Refactor code
-- [ ] Make my own textures
+- [x] Placing/breaking blocks
 
 ## Screenshots
 

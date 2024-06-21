@@ -73,7 +73,7 @@ void Player::update(float deltaTime) {
     utils::Ray ray;
     ray.origin = position;
     ray.direction = camera.direction;
-    ray.length = 10;
+    ray.length = 5;
 
     auto result = app.world->castRay(ray);
     if (result.hit) {
