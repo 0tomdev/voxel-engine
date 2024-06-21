@@ -7,9 +7,10 @@
 - [ ] Physics
 - [ ] Good terrain generation
 - [ ] Improve chunk loading/unloading
-- [ ] Optimize VRAM usage
 - [ ] Refactor code
 - [ ] Sort faces in transparent mesh
+- [ ] Add UI
+- [ ] Optimize VRAM usage
 - [x] Loading multiple chunks
 - [x] Different block types
 - [x] Sort chunks by distance to player
