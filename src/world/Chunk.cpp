@@ -22,18 +22,26 @@ bool Chunk::inBounds(glm::ivec3 chunkPos) {
     return true;
 }
 
-Chunk::Chunk(glm::ivec2 _worldIndex) : data(CHUNK_ARRAY_SIZE), worldIndex(_worldIndex) {
-    memset(data.data(), 0, CHUNK_ARRAY_SIZE);
-}
-
-Chunk::~Chunk() {}
-
-int Chunk::getIndex(glm::ivec3 pos) const {
+int Chunk::getIndex(glm::ivec3 pos) {
     int idx = pos.y * CHUNK_SIZE * CHUNK_SIZE;
     idx += pos.z * CHUNK_SIZE;
     idx += pos.x;
     return idx;
 }
+
+glm::ivec3 Chunk::getChunkPosition(glm::ivec3 worldPos) {
+    int x = worldPos.x % CHUNK_SIZE;
+    int z = worldPos.z % CHUNK_SIZE;
+    if (x < 0) x += CHUNK_SIZE;
+    if (z < 0) z += CHUNK_SIZE;
+    return glm::ivec3(x, worldPos.y, z);
+}
+
+Chunk::Chunk(glm::ivec2 _worldIndex) : data(CHUNK_ARRAY_SIZE), worldIndex(_worldIndex) {
+    memset(data.data(), 0, CHUNK_ARRAY_SIZE);
+}
+
+Chunk::~Chunk() {}
 
 BlockId Chunk::getBlock(glm::ivec3 pos) const {
     if (pos.y < 0 || pos.y >= CHUNK_HEIGHT) return Block::AIR;
@@ -49,10 +57,4 @@ void Chunk::setBlock(glm::ivec3 pos, BlockId block) {
 
 glm::ivec3 Chunk::getWorldPosition(glm::ivec3 chunkPos) const {
     return glm::ivec3(worldIndex.x, 0, worldIndex.y) * CHUNK_SIZE + chunkPos;
-}
-
-glm::ivec3 Chunk::getChunkPosition(glm::ivec3 worldPos) const {
-    int x = worldPos.x % CHUNK_SIZE;
-    int z = worldPos.z % CHUNK_SIZE;
-    return glm::ivec3(x, worldPos.y, z);
 }

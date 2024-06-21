@@ -48,6 +48,21 @@ utils::ScopeTimer::~ScopeTimer() {
     std::cout << "Timer took " << durationMs.count() << "ms\n";
 }
 
+glm::ivec3 utils::getDirectionOffset(Direction dir) {
+    glm::ivec3 result = glm::ivec3(0);
+
+    switch (dir) {
+        case EAST: result.x = 1; break;
+        case WEST: result.x = -1; break;
+        case UP: result.y = 1; break;
+        case DOWN: result.y = -1; break;
+        case SOUTH: result.z = 1; break;
+        case NORTH: result.z = -1; break;
+    }
+
+    return result;
+}
+
 float utils::octiveNoise(glm::vec2 value, uint32_t octives, float lacunarity, float persistence) {
     float result = 0;
 

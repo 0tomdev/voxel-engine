@@ -43,6 +43,10 @@ void Block::initBlocks() {
     log.textureIdx = 9;
     blockDefs[LOG] = log;
 
+    BlockData planks;
+    planks.textureIdx = 11;
+    blockDefs[PLANKS] = planks;
+
     BlockData leaves;
     leaves.textureIdx = 13;
     leaves.isTransparent = true;

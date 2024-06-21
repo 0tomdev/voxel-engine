@@ -20,6 +20,7 @@ enum Name : BlockId {
     GRASS,
     GLASS,
     LOG,
+    PLANKS,
     LEAVES,
     CLAY,
     SAND,

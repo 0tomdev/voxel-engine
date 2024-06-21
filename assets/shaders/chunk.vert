@@ -5,7 +5,8 @@ layout(location = 1) in vec2 aTexCoord;
 layout(location = 2) in uint aNormalIdx;
 layout(location = 3) in int aTexIdx;
 layout(location = 4) in int aOcclusionValue;
-layout(location = 5) in uint aFlags;
+layout(location = 5) in uint aBlockIdx;
+layout(location = 6) in uint aFlags;
 
 out vec2 bTexCoord;
 out vec3 bVertColor;
@@ -16,7 +17,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float time;
 uniform ivec3 chunkPos;
-uniform ivec3 selectedBlock;
+uniform int selectedIdx;
 
 // clang-format off
 const vec3 normalArray[6] = vec3[](
@@ -36,14 +37,16 @@ float map(float value, float min1, float max1, float min2, float max2) {
 void main() {
     const float loweredAmount = 4.0 / 16.0;
 
+    // Extract data
     vec3 normal = normalArray[aNormalIdx];
 
     vec3 vertPos = aPos;
     vec3 worldVertPos = chunkPos + vertPos;
 
-    // Extract flags
     bool isLowered = (aFlags & 1u) != 0u;
-    bool isSelected = (aFlags & (1u << 1)) != 0u;
+    bool isSelected = selectedIdx == int(aBlockIdx);
+
+    // The rest
 
     if (isLowered) {
         float heightOffset = (sin(time + worldVertPos.x + worldVertPos.z) + 1) / 2 / 8;
@@ -58,7 +61,7 @@ void main() {
 
     bVertColor = vec3(map(aOcclusionValue, 0, 3, aoMinMultipler, 1));
     if (isSelected) {
-        bVertColor *= 1.5;
+        bVertColor *= 1.5 + sin(time * 4) * 0.1;
     }
 
     bTextureIdx = aTexIdx;

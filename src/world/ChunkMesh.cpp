@@ -74,10 +74,14 @@ void ChunkMesh::createMesh() {
 
     using Direction = utils::Direction;
 
+    int i = 0;
+
     for (int y = 0; y < Chunk::CHUNK_HEIGHT; y++) {
         for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
             for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
                 auto pos = glm::ivec3(x, y, z);
+                assert(i == Chunk::getIndex(pos));
+
                 glm::ivec3 worldPos = chunk.getWorldPosition(pos);
                 BlockId block = nearChunks.getBlock(pos);
 
@@ -119,6 +123,8 @@ void ChunkMesh::createMesh() {
                     shouldAddFace(block, nearChunks.getBlock({x, y, Chunk::CHUNK_SIZE}))) {
                     addFace(pos, Direction::SOUTH);
                 }
+
+                i++;
             }
         }
     }
@@ -144,15 +150,16 @@ void ChunkMesh::rebuild() {
 
 void ChunkMesh::addFace(const glm::ivec3& pos, utils::Direction facing) {
     BlockId block = chunk.getBlock(pos);
+    int blockIdx = Chunk::getIndex(pos);
     Mesh& mesh = Block::isTransparent(block) ? transparentMesh : opaqueMesh;
     addQuad(
         pos, facing, Block::blockDefs[block].getTextureIdx(facing), mesh,
-        Block::blockDefs[block].isLiquid
+        Block::blockDefs[block].isLiquid, blockIdx
     );
 }
 
 void ChunkMesh::addQuad(
-    const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid
+    const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid, int blockIdx
 ) {
     Vertex v1 = allCubeVertices[facing * 4 + 0];
     Vertex v2 = allCubeVertices[facing * 4 + 1];
@@ -170,14 +177,11 @@ void ChunkMesh::addQuad(
         }
     }
 
-    v1.pos += pos;
-    v2.pos += pos;
-    v3.pos += pos;
-    v4.pos += pos;
-    v1.textureIdx = textureIdx;
-    v2.textureIdx = textureIdx;
-    v3.textureIdx = textureIdx;
-    v4.textureIdx = textureIdx;
+    for (auto v : verts) {
+        v->pos += pos;
+        v->textureIdx = textureIdx;
+        v->blockIdx = blockIdx;
+    }
 
     addTriangle(v1, v3, v2, mesh);
     addTriangle(v3, v4, v2, mesh);
@@ -272,6 +276,8 @@ ChunkMesh::~ChunkMesh() {
 }
 
 void ChunkMesh::render(const Camera& camera, float aspectRatio) {
+    Application& app = Application::get();
+
     if (shouldRebuild) {
         rebuild();
         shouldRebuild = false;
@@ -287,23 +293,32 @@ void ChunkMesh::render(const Camera& camera, float aspectRatio) {
 
     // Shader
     // const Shader& shaderValue = shader.value();
-    const Shader& shader = Application::get().shaders.at("chunk");
+    const Shader& shader = app.shaders.at("chunk");
 
     GLint viewLoc = shader.getUniformLocation("view");
     GLint projectionLoc = shader.getUniformLocation("projection");
     GLint modelLoc = shader.getUniformLocation("model");
     GLint timeLoc = shader.getUniformLocation("time");
     GLint chunkPosLoc = shader.getUniformLocation("chunkPos");
-    GLint selectedBlockLoc = shader.getUniformLocation("selectedBlock");
+    GLint selectedBlockLoc = shader.getUniformLocation("selectedIdx");
 
-    const auto selectedBlock = glm::ivec3(0, 180, 11);
+    const auto selectedBlock = app.world->player.getSelectedBlock();
+    int selectedIdx = -1;
+    if (selectedBlock.has_value()) {
+        const glm::ivec3 pos = selectedBlock.value().position;
+        const glm::ivec2 worldIdx = Chunk::getWorldIndex(pos);
+        if (worldIdx == chunk.worldIndex) {
+            auto chunkPos = Chunk::getChunkPosition(pos);
+            selectedIdx = Chunk::getIndex(chunkPos);
+        }
+    }
 
     GL_CALL(glUseProgram(shader.ID));
     GL_CALL(glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)));
     GL_CALL(glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection)));
     GL_CALL(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
     GL_CALL(glUniform1f(timeLoc, glfwGetTime()));
-    GL_CALL(glUniform3iv(selectedBlockLoc, 1, glm::value_ptr(selectedBlock)));
+    glUniform1i(selectedBlockLoc, selectedIdx); // To highlight the selected block
 
     auto chunkPos = nearChunks.getMiddle()->getWorldPosition(glm::ivec3(0));
     GL_CALL(glUniform3iv(chunkPosLoc, 1, glm::value_ptr(chunkPos)));
@@ -358,12 +373,6 @@ BlockId ChunkMesh::BorderingChunks::getBlock(glm::ivec3 chunkPos) const {
         std::cout << borderingIdx << " | " << chunkPos.x << ", y, " << chunkPos.z << "\n";
     }
 
-    // if (chunks[borderingIdx] == nullptr) {
-    //     for (auto i : chunks) {
-    //         std::cout << i << "\n";
-    //     }
-    // }
-
     return chunks[borderingIdx]->getBlock(chunkPos);
 }
 
@@ -403,11 +412,17 @@ void ChunkMesh::Mesh::createBuffers() {
     glVertexAttribPointer(4, 1, GL_INT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, aoValue)));
     glEnableVertexAttribArray(4);
 
-    // flags
+    // Block index
     glVertexAttribPointer(
-        5, 1, GL_UNSIGNED_BYTE, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, flags))
+        5, 1, GL_UNSIGNED_SHORT, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, blockIdx))
     );
     glEnableVertexAttribArray(5);
+
+    // flags
+    glVertexAttribPointer(
+        6, 1, GL_UNSIGNED_BYTE, GL_FALSE, vertexSize, (void*)(offsetof(Vertex, flags))
+    );
+    glEnableVertexAttribArray(6);
 }
 
 void ChunkMesh::Mesh::deleteBuffers() {

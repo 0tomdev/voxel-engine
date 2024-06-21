@@ -16,6 +16,8 @@ public:
 
     static glm::ivec2 getWorldIndex(glm::vec3 worldPos);
     static bool inBounds(glm::ivec3 chunkPos);
+    static int getIndex(glm::ivec3 pos);
+    static glm::ivec3 getChunkPosition(glm::ivec3 worldPos);
 
     const glm::ivec2 worldIndex;
 
@@ -35,9 +37,7 @@ public:
     Chunk& operator=(const Chunk&) = delete;
 
     // I just realized these should all be uvec3, not ivec3
-    int getIndex(glm::ivec3 pos) const;
     BlockId getBlock(glm::ivec3 pos) const;
     void setBlock(glm::ivec3 pos, BlockId block);
     glm::ivec3 getWorldPosition(glm::ivec3 chunkPos) const;
-    glm::ivec3 getChunkPosition(glm::ivec3 worldPos) const;
 };

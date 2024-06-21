@@ -52,6 +52,7 @@ public:
     GLFWwindow* getWindow() const;
     const Mouse& getMouse() const;
     const Keyboard& getKeyboard() const;
+    const glm::uvec2 getWindowSize() const;
 
     bool init();
     void run();

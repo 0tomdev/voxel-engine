@@ -69,18 +69,25 @@ void Player::update(float deltaTime) {
     calculateCameraDirection();
     camera.position = position;
 
-    // Interacting with the world
+    // Breaking/placing blocks
     utils::Ray ray;
     ray.origin = position;
     ray.direction = camera.direction;
-    ray.length = 6;
+    ray.length = 10;
 
     auto result = app.world->castRay(ray);
     if (result.hit) {
-        // std::cout << result.blockPosition.x << ", " << result.blockPosition.y << ", "
-        //           << result.blockPosition.z << "\n";
+        selectedBlock = {result.blockPosition, result.face};
+        if (app.getMouse().buttons[GLFW_MOUSE_BUTTON_RIGHT].wasPressed) {
+            app.world->setBlock(
+                result.blockPosition + utils::getDirectionOffset(result.face), Block::PLANKS
+            );
+        }
         if (app.getMouse().buttons[GLFW_MOUSE_BUTTON_LEFT].wasPressed)
             app.world->setBlock(result.blockPosition, Block::AIR);
+
+    } else {
+        selectedBlock.reset();
     }
 
     prevWorldIdx = idx;
@@ -90,7 +97,6 @@ bool Player::movedChunks() const {
     return _movedChunks;
 }
 
-void Player::placeBlock() {
-    // Application& app = Application::get();
-    // World* world = app.world.get();
+const std::optional<Player::SelectedBlock>& Player::getSelectedBlock() const {
+    return selectedBlock;
 }

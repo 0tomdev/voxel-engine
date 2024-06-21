@@ -33,6 +33,8 @@ namespace utils {
 
 enum Direction { EAST, WEST, UP, DOWN, SOUTH, NORTH };
 
+glm::ivec3 getDirectionOffset(Direction dir);
+
 struct Texture {
     unsigned int id; // OpenGL id
     int width, height;

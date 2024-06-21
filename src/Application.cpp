@@ -138,6 +138,10 @@ const Keyboard& Application::getKeyboard() const {
     return keyboard;
 }
 
+const glm::uvec2 Application::getWindowSize() const {
+    return windowSize;
+}
+
 bool Application::init() {
     glfwSetErrorCallback(onGlfwError);
 

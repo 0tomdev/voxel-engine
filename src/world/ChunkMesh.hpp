@@ -14,6 +14,9 @@ public:
         unsigned int aoValue = 3;
         int textureIdx;
 
+        // Index of the block that this vertex belongs to
+        GLushort blockIdx;
+
         /**
          * 1: isLowered
          * 1 << 1: nothing (yet)
@@ -79,7 +82,9 @@ private:
 
     void createMesh();
     void addFace(const glm::ivec3& pos, utils::Direction facing);
-    void addQuad(const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid);
+    void addQuad(
+        const glm::ivec3& pos, int facing, int textureIdx, Mesh& mesh, bool isLiquid, int blockIdx
+    );
     void addTriangle(Vertex v1, Vertex v2, Vertex v3, Mesh& mesh);
     void
     calculateAO(std::vector<Vertex*>& verts, utils::Direction facing, const glm::ivec3& pos) const;

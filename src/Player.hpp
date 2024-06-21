@@ -2,9 +2,15 @@
 
 #include <glm/glm.hpp>
 
+#include "utils.hpp"
 #include "Camera.hpp"
 
 class Player {
+    struct SelectedBlock {
+        glm::ivec3 position;
+        utils::Direction face;
+    };
+
 public:
     glm::vec3 position = glm::vec3(0, 150, 0);
     Camera camera;
@@ -15,8 +21,7 @@ public:
     void update(float deltaTime);
     // Returns true if the player moved into a new chunk this frame
     bool movedChunks() const;
-    void placeBlock();
-    // void breakBlock();
+    const std::optional<SelectedBlock>& getSelectedBlock() const;
 
 private:
     float pitch = -30;
@@ -24,6 +29,7 @@ private:
     float camSensitivity = 0.1;
     glm::ivec2 prevWorldIdx;
     bool _movedChunks = false;
+    std::optional<SelectedBlock> selectedBlock;
 
     void calculateCameraDirection();
     void handleMovement(float deltaTime);
