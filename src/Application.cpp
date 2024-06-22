@@ -245,9 +245,14 @@ void Application::run() {
             ImGui::BeginDisabled(mouse.isCaptured);
 
             ImGui::Text("FPS: %i", (int)(1.0f / deltaTime));
+            ImGui::Text("Delta Time: %f s", deltaTime);
             ImGui::DragFloat("Position x", &world->player.position.x, 1, -100, 100);
             ImGui::DragFloat("Position y", &world->player.position.y, 1, 0, 255);
             ImGui::DragFloat("Position z", &world->player.position.z, 1, -100, 100);
+            ImGui::Text(
+                "Velocity: (%f, %f, %f)", world->player.velocity.x, world->player.velocity.y,
+                world->player.velocity.z
+            );
             ImGui::Checkbox("Wireframe mode", &wireFrameMode);
             ImGui::SliderFloat("Movement speed", &world->player.movementSpeed, 5.0f, 30.0f);
 

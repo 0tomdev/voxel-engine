@@ -4,6 +4,7 @@
 
 #include "utils.hpp"
 #include "Camera.hpp"
+#include "world/BoundingBox.hpp"
 
 class Player {
     struct SelectedBlock {
@@ -13,8 +14,10 @@ class Player {
 
 public:
     glm::vec3 position = glm::vec3(0, 150, 0);
+    glm::vec3 velocity = glm::vec3(0);
     Camera camera;
-    float movementSpeed = 15;
+    float movementSpeed = 10;
+    bool isFlying;
 
     Player();
     void updateCameraFromMouse(glm::ivec2 mouseOffset);
@@ -24,12 +27,15 @@ public:
     const std::optional<SelectedBlock>& getSelectedBlock() const;
 
 private:
+    const float flyingFriction = 5;
+    const float movementAcceleration = 30;
     float pitch = -30;
     float yaw = 0;
     float camSensitivity = 0.1;
     glm::ivec2 prevWorldIdx;
     bool _movedChunks = false;
     std::optional<SelectedBlock> selectedBlock;
+    BoundingBox boundingBox = {glm::vec3(1, 2, 1), position};
 
     void calculateCameraDirection();
     void handleMovement(float deltaTime);

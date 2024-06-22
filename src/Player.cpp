@@ -40,14 +40,16 @@ void Player::handleMovement(float deltaTime) {
 
     if (movementDirection != glm::vec3(0)) movementDirection = glm::normalize(movementDirection);
 
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        movementDirection += glm::vec3(0, 1, 0);
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        movementDirection -= glm::vec3(0, 1, 0);
-    }
+    // if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    //     movementDirection += glm::vec3(0, 1, 0);
+    // }
+    // if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+    //     movementDirection -= glm::vec3(0, 1, 0);
+    // }
 
-    position += movementDirection * movementSpeed * deltaTime;
+    if (glm::length(velocity * glm::vec3(1, 0, 1)) < movementSpeed) {
+        velocity += movementDirection * deltaTime * movementAcceleration;
+    }
 }
 
 void Player::updateCameraFromMouse(glm::ivec2 mouseOffset) {
@@ -60,12 +62,30 @@ void Player::updateCameraFromMouse(glm::ivec2 mouseOffset) {
 void Player::update(float deltaTime) {
     Application& app = Application::get();
 
+    // Physics
     handleMovement(deltaTime);
+    glm::vec3 horizVelocity = velocity * glm::vec3(1, 0, 1);
+    if (glm::length(horizVelocity) > 0)
+        velocity -= glm::normalize(horizVelocity) * flyingFriction * deltaTime;
 
+    position += velocity * deltaTime;
+
+    // boundingBox.pos = position;
+    // glm::ivec3 offset;
+    // for (offset.y = -2; offset.y <= Chunk::CHUNK_HEIGHT; offset.y++) {
+    //     for (offset.z = 0; offset.z < Chunk::CHUNK_SIZE; offset.z++) {
+    //         for (offset.x = 0; offset.x < Chunk::CHUNK_SIZE; offset.x++) {
+    //             glm::ivec3 voxelPos = offset + (glm::ivec3)glm::floor(position);
+    //         }
+    //     }
+    // }
+
+    // Check if moved chunks
     auto idx = Chunk::getWorldIndex(position);
     _movedChunks = false;
     if (prevWorldIdx != idx) _movedChunks = true;
 
+    // Camera position
     calculateCameraDirection();
     camera.position = position;
 
@@ -73,14 +93,14 @@ void Player::update(float deltaTime) {
     utils::Ray ray;
     ray.origin = position;
     ray.direction = camera.direction;
-    ray.length = 5;
+    ray.length = 6;
 
     auto result = app.world->castRay(ray);
     if (result.hit) {
         selectedBlock = {result.blockPosition, result.face};
         if (app.getMouse().buttons[GLFW_MOUSE_BUTTON_RIGHT].wasPressed) {
             app.world->setBlock(
-                result.blockPosition + utils::getDirectionOffset(result.face), Block::PLANKS
+                result.blockPosition + utils::getDirectionOffset(result.face), Block::GLASS
             );
         }
         if (app.getMouse().buttons[GLFW_MOUSE_BUTTON_LEFT].wasPressed)

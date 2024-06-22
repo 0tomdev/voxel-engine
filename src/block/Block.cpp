@@ -41,6 +41,7 @@ void Block::initBlocks() {
 
     BlockData log;
     log.textureIdx = 9;
+    log.topTextureIdx = 10;
     blockDefs[LOG] = log;
 
     BlockData planks;
