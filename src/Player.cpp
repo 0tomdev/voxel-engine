@@ -16,7 +16,9 @@ void Player::calculateCameraDirection() {
     camera.direction = glm::normalize(camera.direction);
 }
 
-void Player::handleMovement(float deltaTime) {
+void Player::physicsUpdate(float deltaTime) {
+    Application& app = Application::get();
+
     glm::vec3 camFront = camera.getDirection();
     camFront.y = 0;
     camFront = glm::normalize(camFront);
@@ -40,45 +42,51 @@ void Player::handleMovement(float deltaTime) {
 
     if (movementDirection != glm::vec3(0)) movementDirection = glm::normalize(movementDirection);
 
-    // if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-    //     movementDirection += glm::vec3(0, 1, 0);
-    // }
-    // if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-    //     movementDirection -= glm::vec3(0, 1, 0);
-    // }
-
-    if (glm::length(velocity * glm::vec3(1, 0, 1)) < movementSpeed) {
-        velocity += movementDirection * deltaTime * movementAcceleration;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        position.y += 6 * deltaTime;
     }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        position.y -= 6 * deltaTime;
+    }
+
+    velocity += movementDirection * deltaTime * movementSpeed;
+
+    float xzMult = 0.96;
+    velocity.x *= xzMult;
+    velocity.z *= xzMult;
+
+    position += velocity * deltaTime;
+
+    // Collision checking
+    // boundingBox.pos = position + glm::vec3(0.1, 0, 0.1);
+    // glm::ivec3 offset;
+    // for (offset.y = -2; offset.y <= 2; offset.y++) {
+    //     for (offset.z = -2; offset.z <= 2; offset.z++) {
+    //         for (offset.x = -2; offset.x <= 2; offset.x++) {
+    //             glm::ivec3 voxelPos = offset + (glm::ivec3)glm::floor(boundingBox.pos);
+    //             BlockId block = app.world->getBlock(voxelPos);
+    //             if (!block) continue;
+    //             BoundingBox voxelBox = {glm::vec3(1), voxelPos};
+    //             if (boundingBox.isTouching(voxelBox)) {
+    //                 std::cout << "Collision\n";
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 void Player::updateCameraFromMouse(glm::ivec2 mouseOffset) {
     yaw += mouseOffset.x * camSensitivity;
     pitch += mouseOffset.y * camSensitivity;
     pitch = glm::clamp(pitch, -89.9f, 89.9f);
-    // std::cout << mouseOffset.y << " " << pitch << " " << yaw << "\n";
 }
 
 void Player::update(float deltaTime) {
     Application& app = Application::get();
 
     // Physics
-    handleMovement(deltaTime);
-    glm::vec3 horizVelocity = velocity * glm::vec3(1, 0, 1);
-    if (glm::length(horizVelocity) > 0)
-        velocity -= glm::normalize(horizVelocity) * flyingFriction * deltaTime;
-
-    position += velocity * deltaTime;
-
-    // boundingBox.pos = position;
-    // glm::ivec3 offset;
-    // for (offset.y = -2; offset.y <= Chunk::CHUNK_HEIGHT; offset.y++) {
-    //     for (offset.z = 0; offset.z < Chunk::CHUNK_SIZE; offset.z++) {
-    //         for (offset.x = 0; offset.x < Chunk::CHUNK_SIZE; offset.x++) {
-    //             glm::ivec3 voxelPos = offset + (glm::ivec3)glm::floor(position);
-    //         }
-    //     }
-    // }
+    physicsUpdate(deltaTime);
 
     // Check if moved chunks
     auto idx = Chunk::getWorldIndex(position);
