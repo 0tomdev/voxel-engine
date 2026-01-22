@@ -1,29 +1,33 @@
 # Recreation of Minecraft
 
-## Todo
+## Features
+- Infinite terrain with chunk loading/unloading
+- Placing/breaking blocks
+- Transparent glass blocks
+- Ambient occlusion
+- Transparent water with wave effect (custom vertex shader)
+- Debug info with ![ImGui](https://github.com/ocornut/imgui)
 
-- [ ] Fix visual glitches with water
-- [ ] Make my own textures
-- [ ] Physics
-- [ ] Good terrain generation
-- [ ] Improve chunk loading/unloading
-- [ ] Refactor code
-- [ ] Sort faces in transparent mesh
-- [ ] Add UI
-- [ ] Optimize VRAM usage
-- [x] Loading multiple chunks
-- [x] Different block types
-- [x] Sort chunks by distance to player
-- [x] Water
-- [x] Separate transparent blocks into different mesh
-- [x] Trees
-- [x] Ambient occlusion
-- [x] Placing/breaking blocks
+## Development Screenshots
 
-## Screenshots
+### First working version
 
-![Cool water](images/water_close.png)
+- Basic perlin noise for terrain
+
+![Bad graphics](images/terrain1.png)
+
+### Improved graphics and terrain
+
+- Layered Perlin noise
+- Ambient occlusion
+- Water
+- Trees
 
 ![Better graphics](images/terrain2.png)
 
-![Bad graphics](images/terrain1.png)
+### More refinements
+
+- Blocks near water are sand
+- Waves effect in water
+
+![Cool water](images/water_close.png)
