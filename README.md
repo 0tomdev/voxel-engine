@@ -1,39 +1,43 @@
-# Recreation of Minecraft
-
-## Features
-- Infinite terrain with chunk loading/unloading
-- Placing/breaking blocks
-- Transparent glass blocks
-- Ambient occlusion
-- Transparent water with wave effect (custom vertex shader)
-- Debug info with [ImGui](https://github.com/ocornut/imgui)
-
-## Development Screenshots
-
-### First working version
-
-- Basic perlin noise for terrain
-
-![Basic graphics](images/terrain1.png)
-
-### Improved graphics and terrain
-
-- Layered Perlin noise
-- Ambient occlusion
-- Water
-- Trees
-
-![Better graphics](images/terrain2.png)
-
-### More refinements
-
-- Blocks near water are sand
-- Waves effect in water
+# Minecraft-Style Voxel Engine
+A custom voxel rendering engine inspired by Minecraft, built from scratch in C++ using OpenGL
 
 ![Waves in water](images/water_close.png)
 
-## Resources used
+## Features
+- Infinite procedural terrain with chunk-based loading/unloading
+- Placing and breaking blocks
+- Transparent glass and water rendering
+- Ambient occlusion lighting
+- Custom water shader with vertex wave displacement
+- Debug overlay
 
-1. [Ambient occlusion for Minecraft-like worlds](https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/)
-1. [Meshing in a Minecraft Game](https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/)
-1. [Learn OpenGL YouTube Series](https://www.youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2)
+## Tech Used
+- C++20
+- OpenGL (GLFW, GLEW)
+- GLSL for shaders
+- GLM for math
+- ImGui for debugging tools
+
+## Installation
+1. Clone the repository
+```zsh
+git clone https://github.com/0tomdev/voxel-engine.git
+cd voxel-engine
+```
+2. Compile and run
+```bash
+make run
+```
+
+## Development Screenshots
+
+### Initial Terrain Prototype
+![Basic graphics](images/terrain1.png)
+
+### Improved Graphics and Terrain
+![Better graphics](images/terrain2.png)
+
+## References
+1. Ambient occlusion: https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
+1. Meshing: https://0f ps.net/2012/06/30/meshing-in-a-minecraft-game/
+1. OpenGL YouTube series: https://www.youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2
