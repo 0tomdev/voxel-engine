@@ -39,5 +39,5 @@ make run
 
 ## References
 1. Ambient occlusion: https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-1. Meshing: https://0f ps.net/2012/06/30/meshing-in-a-minecraft-game/
+1. Meshing: https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 1. OpenGL YouTube series: https://www.youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2
