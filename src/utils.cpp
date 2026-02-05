@@ -49,7 +49,7 @@ utils::ScopeTimer::~ScopeTimer() {
 }
 
 glm::ivec3 utils::getDirectionOffset(Direction dir) {
-    glm::ivec3 result = glm::ivec3(0);
+    auto result = glm::ivec3(0);
 
     switch (dir) {
         case EAST: result.x = 1; break;
