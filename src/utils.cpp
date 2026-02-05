@@ -40,16 +40,16 @@ utils::Texture::Texture(const char* filePath) {
 
 utils::ScopeTimer::ScopeTimer() {
     // message = msg;
-    start = std::chrono::high_resolution_clock::now();
+    start = std::chrono::steady_clock::now();
 }
 utils::ScopeTimer::~ScopeTimer() {
-    auto end = std::chrono::high_resolution_clock::now();
-    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    const auto end = std::chrono::steady_clock::now();
+    const auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Timer took " << durationMs.count() << "ms\n";
 }
 
 glm::ivec3 utils::getDirectionOffset(Direction dir) {
-    glm::ivec3 result = glm::ivec3(0);
+    auto result = glm::ivec3(0);
 
     switch (dir) {
         case EAST: result.x = 1; break;
